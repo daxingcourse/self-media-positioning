@@ -64,7 +64,7 @@
   .pearls i{position:absolute;bottom:-40px;border-radius:50%;background:var(--pearl);opacity:.08;animation:rise linear infinite}
   @keyframes rise{to{transform:translateY(-115vh) translateX(20px)}}
 
-  .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:20px 16px 80px}
+  .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:20px 16px 120px}
   header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
   .brand{display:flex;align-items:center;gap:10px;font-size:20px;color:var(--brown)}
   .brand small{display:block;font-size:11px;color:var(--muted);font-family:'Noto Sans TC';letter-spacing:.12em}
@@ -237,6 +237,35 @@
   .confetti i{position:absolute;top:-20px;width:12px;height:12px;border-radius:50%;animation:fall 2.4s ease-in forwards}
   @keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.2}}
   footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
+  /* ---------- 浮動分享按鈕 ---------- */
+  .share-fab{position:fixed;right:18px;bottom:22px;z-index:7;display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:none}
+  .share-fab[hidden]{display:none}
+  .share-fab > *{pointer-events:auto}
+  .fab-main{position:relative;width:64px;height:64px;border-radius:50%;border:3px solid var(--pearl);background:var(--caramel);box-shadow:0 5px 0 var(--pearl);display:grid;place-items:center;animation:fabBob 2.4s ease-in-out infinite;transition:transform .2s}
+  .fab-main:active{transform:translateY(3px)}
+  .fab-main::before,.fab-main::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:3px solid var(--caramel);animation:fabRing 2.4s ease-out infinite;pointer-events:none}
+  .fab-main::after{animation-delay:1.2s}
+  @keyframes fabBob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-7px) rotate(4deg)}}
+  @keyframes fabRing{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.7);opacity:0}}
+  .fab-main .ico{font-size:28px;line-height:1;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+  .fab-main .x{position:absolute;font-size:26px;color:#fff;font-weight:700;opacity:0;transform:rotate(-90deg) scale(.4);transition:all .35s cubic-bezier(.34,1.56,.64,1)}
+  .share-fab.open .fab-main{animation:none}
+  .share-fab.open .fab-main::before,.share-fab.open .fab-main::after{display:none}
+  .share-fab.open .fab-main .ico{transform:rotate(90deg) scale(0)}
+  .share-fab.open .fab-main .x{opacity:1;transform:none}
+  .fab-bubble{position:absolute;right:76px;bottom:16px;white-space:nowrap;background:var(--card);color:var(--brown);border:2px solid var(--line);border-radius:16px;padding:6px 12px;font-size:13px;font-family:'Huninn','Noto Sans TC',sans-serif;box-shadow:var(--shadow-sm);opacity:0;transform:translateX(10px) scale(.8);transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+  .fab-bubble::after{content:'';position:absolute;right:-8px;top:50%;width:12px;height:12px;margin-top:-6px;background:var(--card);border-top:2px solid var(--line);border-right:2px solid var(--line);transform:rotate(45deg)}
+  .fab-bubble.show{opacity:1;transform:none;animation:jelly .5s .2s}
+  .share-fab.open .fab-bubble{opacity:0}
+  .fab-menu{display:flex;flex-direction:column;align-items:flex-end;gap:9px;margin-right:6px}
+  .fab-item{display:flex;align-items:center;gap:8px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:7px 14px 7px 8px;font-size:14px;box-shadow:var(--shadow-sm);opacity:0;transform:translateY(16px) scale(.6);pointer-events:none;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .2s;transition-delay:calc((5 - var(--i)) * 35ms)}
+  .fab-item:hover{border-color:var(--caramel)}
+  .fab-item .b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700;flex:none}
+  .share-fab.open .fab-item{opacity:1;transform:none;pointer-events:auto;transition-delay:calc(var(--i) * 45ms)}
+  .share-fab.open .fab-item:hover{transform:translateX(-4px)}
+  .share-veil{position:fixed;inset:0;z-index:6;background:rgba(59,42,32,.18);opacity:0;pointer-events:none;transition:opacity .25s}
+  .share-veil.on{opacity:1;pointer-events:auto}
+  @media print{.share-fab,.share-veil{display:none!important}}
   @media print{
     .pearls,header.top,.progress,.no-print,.toast{display:none!important}
     body{background:#fff}
@@ -366,6 +395,22 @@
   <section class="step" data-step="5" id="result"></section>
 
   <footer>奶茶定位所 · 結果僅存在你的瀏覽器，不會上傳</footer>
+</div>
+
+<div class="share-veil" id="shareVeil"></div>
+<div class="share-fab" id="shareFab" hidden>
+  <div class="fab-menu" id="fabMenu" role="menu" aria-label="分享方式">
+    <button class="fab-item" style="--i:5" data-share="native" role="menuitem"><span class="b" style="background:#8A5E3F">⤴</span>更多分享方式</button>
+    <button class="fab-item" style="--i:4" data-share="image" role="menuitem"><span class="b" style="background:linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)">📸</span>存成限動圖</button>
+    <button class="fab-item" style="--i:3" data-share="copy" role="menuitem"><span class="b" style="background:#C08B5C">🔗</span>複製連結</button>
+    <button class="fab-item" style="--i:2" data-share="threads" role="menuitem"><span class="b" style="background:#111">@</span>Threads</button>
+    <button class="fab-item" style="--i:1" data-share="fb" role="menuitem"><span class="b" style="background:#1877F2">f</span>Facebook</button>
+    <button class="fab-item" style="--i:0" data-share="line" role="menuitem"><span class="b" style="background:#06C755;font-size:10px">LINE</span>LINE</button>
+  </div>
+  <button class="fab-main" id="fabMain" aria-label="分享給朋友" aria-expanded="false" aria-controls="fabMenu">
+    <span class="ico">💌</span><span class="x">✕</span>
+    <span class="fab-bubble" id="fabBubble">分享給朋友 💕</span>
+  </button>
 </div>
 
 <div class="toast" id="toast" role="status"></div>
@@ -562,6 +607,7 @@
   function go(n){
     S.step = n; save();
     if (n !== 5 && mascotCleanup) { mascotCleanup(); mascotCleanup = null; }
+    showShareFab(n === 5);
     $$('.step').forEach(s => s.classList.toggle('on', +s.dataset.step === n));
     const pr = $('#progress');
     pr.hidden = n === 0;
@@ -894,6 +940,8 @@
       </div>`;
 
     setupMascot(main, nick, P.drink);
+    SHARE = {nick, drink: P.drink, title: P.title, slogan: P.slogan, tags: P.tags, color: P.color,
+             second: P2.drink, top: top.map(d => d.emoji + ' ' + d.name), traits: ranked.slice(0,3).map(k => ({name: TRAITS[k].name, v: score[k]}))};
     if (ENDPOINT) setupLeadCapture({
       nick, persona: P.title, personaFull: `${P.drink}・${P.title}`, second: `${P2.drink}・${P2.title}`,
       niches: top.map(d => d.name), audience: S.audience, goal: S.goal[0] || '', face: S.face[0] || '', time: S.time[0] || '',
@@ -982,6 +1030,130 @@
         </div>`).join('');
       $('#prodCard').hidden = false;
     } catch (e) { /* 後台沒回應就不顯示推薦 */ }
+  }
+
+  // ---------- 浮動分享按鈕 ----------
+  let SHARE = null, bubbleT = null;
+  const fab = $('#shareFab'), fabMain = $('#fabMain'), veil = $('#shareVeil'), bubble = $('#fabBubble');
+  const siteUrl = () => location.href.split(/[?#]/)[0];
+  const shareText = () => SHARE ? `我測出來是「${SHARE.drink}・${SHARE.title}」🧋\n${SHARE.slogan}\n你是哪一杯自媒體奶茶？快來測測看 👉` : '你是哪一杯自媒體奶茶？快來測測看 👉';
+  function setFab(open){
+    fab.classList.toggle('open', open); veil.classList.toggle('on', open);
+    fabMain.setAttribute('aria-expanded', open);
+    fabMain.setAttribute('aria-label', open ? '關閉分享選單' : '分享給朋友');
+  }
+  function showShareFab(on){
+    fab.hidden = !on; setFab(false);
+    clearInterval(bubbleT); bubble.classList.remove('show');
+    if (!on) return;
+    const peek = () => { if (fab.classList.contains('open')) return; bubble.classList.add('show'); setTimeout(() => bubble.classList.remove('show'), 3200); };
+    setTimeout(peek, 1800);
+    bubbleT = setInterval(peek, 14000);
+  }
+  fabMain.addEventListener('click', () => setFab(!fab.classList.contains('open')));
+  veil.addEventListener('click', () => setFab(false));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') setFab(false); });
+  $('#fabMenu').addEventListener('click', async e => {
+    const b = e.target.closest('[data-share]'); if (!b) return;
+    const url = siteUrl(), text = shareText();
+    const open = u => window.open(u, '_blank', 'noopener,width=620,height=640');
+    switch (b.dataset.share) {
+      case 'line': open('https://line.me/R/share?text=' + encodeURIComponent(text + ' ' + url)); break;
+      case 'fb': open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url)); break;
+      case 'threads': open('https://www.threads.net/intent/post?text=' + encodeURIComponent(text + ' ' + url)); break;
+      case 'copy':
+        try { await navigator.clipboard.writeText(text + ' ' + url); toast('連結複製好了，快貼給朋友 💕'); }
+        catch (err) { prompt('複製這段文字分享給朋友：', text + ' ' + url); }
+        break;
+      case 'native':
+        if (navigator.share) { try { await navigator.share({title: '奶茶定位所', text, url}); } catch (err) {} }
+        else { try { await navigator.clipboard.writeText(text + ' ' + url); toast('這台裝置不支援，已幫你複製連結 🔗'); } catch (err) {} }
+        break;
+      case 'image': await shareImage(); break;
+    }
+    setFab(false);
+  });
+
+  // 產生 1080×1920 限動分享圖
+  async function shareImage(){
+    if (!SHARE) return;
+    toast('圖片製作中… 🎨');
+    try { await Promise.all([document.fonts.load('64px Huninn'), document.fonts.load('bold 40px "Noto Sans TC"')]); } catch (e) {}
+    const W = 1080, H = 1920, c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const F = (size, w='') => `${w} ${size}px Huninn, "Noto Sans TC", sans-serif`;
+    // 背景
+    g.fillStyle = '#FBF5EC'; g.fillRect(0,0,W,H);
+    const dots = [['#EBDCC8',140,220,180],['#F5EADB',960,520,150],['#F2C6C2',120,1500,90],['#D9C8E6',950,1650,110],['#CFDDB7',880,180,60]];
+    dots.forEach(([col,x,y,r]) => { g.fillStyle = col; g.beginPath(); g.arc(x,y,r,0,7); g.fill(); });
+    g.fillStyle = 'rgba(74,50,38,.08)';
+    for (let i=0;i<26;i++){ g.beginPath(); g.arc((i*137)%W, (i*389)%H, 8 + (i%4)*6, 0, 7); g.fill(); }
+    // 卡片
+    const rr = (x,y,w,h,r) => {
+      g.beginPath();
+      if (g.roundRect) return g.roundRect(x,y,w,h,r);
+      r = Math.min(r, w/2, h/2);
+      g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath();
+    };
+    g.fillStyle = '#E2CDB3'; rr(90,250,900,1400,64); g.fill();
+    g.fillStyle = '#FFFDF9'; rr(90,236,900,1400,64); g.fill();
+    g.strokeStyle = '#E6D3BD'; g.lineWidth = 5; g.stroke();
+    g.textAlign = 'center';
+    g.fillStyle = '#8E7766'; g.font = F(40); g.fillText('奶茶定位所 · 我的自媒體奶茶人格', W/2, 170);
+    g.fillStyle = '#EBDCC8'; rr(W/2-210, 300, 420, 70, 35); g.fill();
+    g.fillStyle = '#8A5E3F'; g.font = F(36); g.fillText(`${SHARE.nick} 的奶茶人格`.slice(0,16), W/2, 348);
+    // 杯子
+    const cx = W/2, top = 430, s = 2.4;
+    g.save(); g.translate(cx - 80*s, top); g.scale(s, s);
+    g.save(); g.translate(98,37); g.rotate(14*Math.PI/180); g.fillStyle = '#F2C6C2'; rr(-6,-35,12,70,6); g.fill(); g.restore();
+    g.fillStyle = '#C08B5C'; g.beginPath(); g.ellipse(80,44,62,14,0,0,7); g.fill();
+    g.fillStyle = '#F4E6D3'; g.strokeStyle = '#8A5E3F'; g.lineWidth = 4; g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(26,50); g.lineTo(134,50); g.lineTo(122,174); g.quadraticCurveTo(120,186,108,186); g.lineTo(52,186); g.quadraticCurveTo(40,186,38,174); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = SHARE.color; g.beginPath(); g.moveTo(30,84); g.lineTo(130,84); g.lineTo(122,176); g.quadraticCurveTo(120,186,110,186); g.lineTo(50,186); g.quadraticCurveTo(40,186,38,176); g.closePath(); g.fill();
+    g.fillStyle = '#4A3226';
+    [[62,106],[98,106]].forEach(([x,y]) => { g.beginPath(); g.ellipse(x,y,7,9,0,0,7); g.fill(); });
+    g.fillStyle = '#fff'; [[64,102],[100,102]].forEach(([x,y]) => { g.beginPath(); g.arc(x,y,2.6,0,7); g.fill(); });
+    g.fillStyle = '#F2A7A0'; [[48,121],[112,121]].forEach(([x,y]) => { g.beginPath(); g.ellipse(x,y,9,5,0,0,7); g.fill(); });
+    g.strokeStyle = '#4A3226'; g.lineWidth = 4; g.lineCap = 'round'; g.beginPath(); g.moveTo(70,117); g.quadraticCurveTo(80,129,90,117); g.stroke();
+    g.fillStyle = '#4A3226'; [[58,166],[78,170],[98,165],[68,152],[90,150]].forEach(([x,y]) => { g.beginPath(); g.arc(x,y,8,0,7); g.fill(); });
+    g.restore();
+    // 名稱
+    g.fillStyle = '#8A5E3F'; g.font = F(84); g.fillText(SHARE.drink, W/2, 1010);
+    g.font = F(64); g.fillText('・' + SHARE.title + '・', W/2, 1095);
+    g.fillStyle = '#8E7766'; g.font = F(38); g.fillText(SHARE.slogan, W/2, 1170, 820);
+    // 標籤
+    g.font = F(34);
+    const tags = SHARE.tags.map(t => '# ' + t);
+    const tw = tags.map(t => g.measureText(t).width + 50), total = tw.reduce((a,b)=>a+b,0) + 20*(tags.length-1);
+    let x = W/2 - total/2;
+    tags.forEach((t,i) => { g.fillStyle = '#F5EADB'; rr(x,1215,tw[i],64,32); g.fill(); g.fillStyle = '#8A5E3F'; g.fillText(t, x + tw[i]/2, 1259); x += tw[i] + 20; });
+    // 前三特質
+    g.textAlign = 'left';
+    SHARE.traits.forEach((t,i) => {
+      const y = 1340 + i*62;
+      g.fillStyle = '#3B2A20'; g.font = F(34); g.fillText(t.name, 200, y + 12);
+      g.fillStyle = '#F5EADB'; rr(360, y-14, 440, 26, 13); g.fill();
+      g.fillStyle = '#C08B5C'; rr(360, y-14, 440*t.v/100, 26, 13); g.fill();
+      g.fillStyle = '#8E7766'; g.fillText(String(t.v), 830, y + 12);
+    });
+    g.textAlign = 'center';
+    g.fillStyle = '#8E7766'; g.font = F(32); g.fillText('最適合：' + SHARE.top.slice(0,2).join('、'), W/2, 1580, 820);
+    // CTA
+    g.fillStyle = '#4A3226'; rr(170,1700,740,120,60); g.fill();
+    g.fillStyle = '#FBF5EC'; g.font = F(46); g.fillText('你是哪一杯？快來測 🧋', W/2, 1776);
+    g.fillStyle = '#8E7766'; g.font = F(28); g.fillText(siteUrl().replace(/^https?:\/\//,''), W/2, 1870, 960);
+
+    const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+    const file = new File([blob], `奶茶人格-${SHARE.title}.png`, {type: 'image/png'});
+    if (navigator.canShare && navigator.canShare({files: [file]})) {
+      try { await navigator.share({files: [file], text: shareText() + ' ' + siteUrl()}); return; } catch (e) { if (e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast('圖片下載好了，分享到限動吧 📸');
   }
 
   // ---------- header actions ----------
