@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>奶茶定位所後台</title>
+<meta name="theme-color" content="#E9D8C4">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%234A3226'/%3E%3Cpath d='M18 20h28l-4 34H22z' fill='%23C8A27C'/%3E%3Ccircle cx='27' cy='46' r='3' fill='%23FBF5EC'/%3E%3Ccircle cx='35' cy='48' r='3' fill='%23FBF5EC'/%3E%3Ccircle cx='31' cy='42' r='3' fill='%23FBF5EC'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF5EC; --foam:#F5EADB; --milk:#EBDCC8; --tea:#D9BC9A; --caramel:#C08B5C; --brown:#8A5E3F;
+    --pearl:#4A3226; --ink:#3B2A20; --muted:#8E7766; --card:#FFFDF9; --line:#E6D3BD; --pink:#F2C6C2;
+    --ok:#5E8C4A; --warn:#C0603F; --shadow-sm:0 3px 0 #E2CDB3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --cream:#231A15; --foam:#2C211B; --milk:#3A2C23; --tea:#6B4E3A; --caramel:#D9A274; --brown:#E6C2A0;
+      --pearl:#F3E3D0; --ink:#F6EBDD; --muted:#BFA48E; --card:#2F241D; --line:#4A372B; --pink:#6E4846;
+      --ok:#9BC487; --warn:#F09A7A; --shadow-sm:0 3px 0 #160F0B;
+    }
+  }
+  :root[data-theme="dark"]{
+    --cream:#231A15; --foam:#2C211B; --milk:#3A2C23; --tea:#6B4E3A; --caramel:#D9A274; --brown:#E6C2A0;
+    --pearl:#F3E3D0; --ink:#F6EBDD; --muted:#BFA48E; --card:#2F241D; --line:#4A372B; --pink:#6E4846;
+    --ok:#9BC487; --warn:#F09A7A; --shadow-sm:0 3px 0 #160F0B;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:'Noto Sans TC',system-ui,sans-serif;background:var(--cream);color:var(--ink);line-height:1.6;min-height:100vh}
+  button,input,textarea,select{font:inherit;color:inherit}
+  button{cursor:pointer}
+  h1,h2,h3{font-family:'Huninn','Noto Sans TC',sans-serif;font-weight:400;color:var(--brown);margin:0}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px 16px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Huninn';font-size:20px;color:var(--brown)}
+  .brand small{display:block;font-family:'Noto Sans TC';font-size:11px;color:var(--muted);letter-spacing:.1em}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;overflow-x:auto}
+  .tab{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:8px 16px;font-size:14px;white-space:nowrap}
+  .tab.on{background:var(--caramel);border-color:var(--caramel);color:#fff}
+  .card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow-sm);margin-bottom:16px}
+  .sub{color:var(--muted);font-size:14px;margin:4px 0 14px}
+  .btn{border:2px solid var(--pearl);background:var(--caramel);color:#fff;border-radius:99px;padding:9px 20px;font-weight:700;box-shadow:0 3px 0 var(--pearl);transition:transform .1s}
+  .btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--pearl)}
+  .btn.ghost{background:var(--card);color:var(--brown);border-color:var(--line);box-shadow:var(--shadow-sm)}
+  .btn.sm{padding:5px 12px;font-size:13px}
+  .btn.danger{color:var(--warn)}
+  .btn:disabled{opacity:.5;pointer-events:none}
+  .input{width:100%;padding:10px 14px;border-radius:14px;border:2px solid var(--line);background:var(--cream);outline:none}
+  .input:focus{border-color:var(--caramel)}
+  textarea.input{min-height:180px;resize:vertical;line-height:1.7}
+  label.f{display:block;font-weight:700;font-size:13.5px;margin:12px 0 6px}
+  label.f .h{font-weight:400;color:var(--muted);margin-left:6px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .grid{display:grid;gap:12px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  @media (max-width:760px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+  .stat{background:var(--foam);border-radius:18px;padding:14px 16px}
+  .stat b{display:block;font-size:30px;font-family:'Huninn';color:var(--brown);line-height:1.2}
+  .stat span{font-size:13px;color:var(--muted)}
+  .bar{display:grid;grid-template-columns:110px 1fr 40px;gap:10px;align-items:center;font-size:14px;margin:7px 0}
+  .bar .t{height:12px;border-radius:99px;background:var(--foam);overflow:hidden}
+  .bar .v{height:100%;background:var(--caramel);border-radius:99px}
+  .bar .n{text-align:right;color:var(--muted)}
+  .spark{display:flex;align-items:flex-end;gap:4px;height:110px;padding-top:10px}
+  .spark div{flex:1;background:var(--tea);border-radius:6px 6px 2px 2px;position:relative;min-height:3px}
+  .spark div span{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted);white-space:nowrap}
+  .pill{display:inline-block;font-size:12px;padding:2px 10px;border-radius:99px;background:var(--milk);color:var(--brown)}
+  .pill.ok{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+  .pill.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+  .table-wrap{overflow-x:auto;border:2px solid var(--line);border-radius:16px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{background:var(--foam);color:var(--brown);font-weight:700;position:sticky;top:0}
+  tr:last-child td{border-bottom:0}
+  td select{padding:3px 6px;border-radius:8px;border:1.5px solid var(--line);background:var(--cream)}
+  .item{border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;background:var(--cream)}
+  .item.off{opacity:.6}
+  .item-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .item-head .grow{flex:1;min-width:160px}
+  .switch{display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;user-select:none}
+  .switch input{display:none}
+  .switch i{width:38px;height:22px;border-radius:99px;background:var(--line);position:relative;transition:background .2s}
+  .switch i::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+  .switch input:checked + i{background:var(--caramel)}
+  .switch input:checked + i::after{left:19px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:4px 11px;font-size:13px}
+  .chip.on{background:var(--caramel);border-color:var(--caramel);color:#fff}
+  .vars{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+  .vars button{border:1.5px dashed var(--tea);background:transparent;border-radius:8px;padding:2px 8px;font-size:12px;color:var(--brown)}
+  .num{width:80px}
+  .savebar{position:sticky;bottom:12px;display:flex;justify-content:flex-end;gap:10px;margin-top:10px}
+  .login{max-width:400px;margin:12vh auto 0;text-align:center}
+  .login .cup{font-size:60px;animation:bob 2.4s ease-in-out infinite;display:inline-block}
+  @keyframes bob{50%{transform:translateY(-8px) rotate(4deg)}}
+  .muted{color:var(--muted);font-size:13px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--pearl);color:var(--cream);padding:10px 20px;border-radius:99px;z-index:9;transition:transform .3s cubic-bezier(.34,1.56,.64,1);font-size:14px;max-width:90vw}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .empty{text-align:center;color:var(--muted);padding:30px}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 登入 -->
+  <section id="loginView" class="login" hidden>
+    <div class="card">
+      <div class="cup">🧋</div>
+      <h2>奶茶定位所後台</h2>
+      <p class="sub" id="loginHint">輸入你在試算表選單「③ 設定網頁後台密碼」設定的密碼</p>
+      <form id="loginForm">
+        <input class="input" type="password" id="pw" placeholder="後台密碼" autocomplete="current-password" required>
+        <div style="margin-top:14px"><button class="btn" id="loginBtn">登入</button></div>
+      </form>
+      <p class="muted" id="loginMsg"></p>
+    </div>
+  </section>
+
+  <!-- 主畫面 -->
+  <section id="appView" hidden>
+    <header>
+      <div class="brand">🧋<div>奶茶定位所後台<small>ADMIN</small></div></div>
+      <div class="row">
+        <a class="btn ghost sm" href="./" target="_blank" rel="noopener" style="text-decoration:none">看網站 ↗</a>
+        <button class="btn ghost sm" id="themeBtn">🌗</button>
+        <button class="btn ghost sm" id="logoutBtn">登出</button>
+      </div>
+    </header>
+    <nav class="tabs" id="tabs">
+      <button class="tab on" data-tab="dash">📊 儀表板</button>
+      <button class="tab" data-tab="leads">👥 名單</button>
+      <button class="tab" data-tab="seq">✉️ 序列信</button>
+      <button class="tab" data-tab="products">🎁 課程產品</button>
+      <button class="tab" data-tab="settings">⚙️ 寄信設定</button>
+    </nav>
+
+    <div data-view="dash"></div>
+    <div data-view="leads" hidden></div>
+    <div data-view="seq" hidden></div>
+    <div data-view="products" hidden></div>
+    <div data-view="settings" hidden></div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="config.js"></script>
+<script>
+(() => {
+  const ENDPOINT = ((window.MILKTEA_CONFIG || {}).ENDPOINT || '').trim();
+  const PERSONAS = ['知識導師','人氣主持人','美感創作者','療癒陪伴者','實驗紀錄家'];
+  const STATUSES = ['訂閱中','已退訂','序列完成'];
+  const VARS = ['{暱稱}','{人格}','{副口味}','{賽道1}','{賽道2}','{受眾}','{定位句}','{產品名稱}','{產品連結}','{課程卡片}'];
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const view = name => $(`[data-view="${name}"]`);
+  let KEY = '';
+  try { KEY = sessionStorage.getItem('mt-admin') || ''; } catch (e) {}
+  try { const t = localStorage.getItem('mt-admin-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+
+  function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2400); }
+
+  async function api(action, extra = {}){
+    const res = await fetch(ENDPOINT, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({admin:true, key:KEY, action, ...extra})});
+    const data = await res.json();
+    if (data.auth === false) { logout(); throw new Error('密碼錯誤或已變更，請重新登入'); }
+    if (!data.ok) throw new Error(data.error || '發生錯誤');
+    return data;
+  }
+  async function busy(btn, fn){
+    const txt = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 處理中';
+    try { return await fn(); } catch (e) { toast('😢 ' + e.message); } finally { btn.disabled = false; btn.innerHTML = txt; }
+  }
+
+  // ---------- 登入 ----------
+  function logout(){ KEY = ''; try { sessionStorage.removeItem('mt-admin'); } catch (e) {} $('#appView').hidden = true; $('#loginView').hidden = false; }
+  $('#loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!ENDPOINT) return;
+    KEY = $('#pw').value;
+    await busy($('#loginBtn'), async () => {
+      try { await api('login'); }
+      catch (err) { $('#loginMsg').textContent = '😢 ' + err.message; KEY = ''; return; }
+      try { sessionStorage.setItem('mt-admin', KEY); } catch (e2) {}
+      start();
+    });
+  });
+  $('#logoutBtn').onclick = logout;
+  $('#themeBtn').onclick = () => {
+    const r = document.documentElement;
+    const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    r.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('mt-admin-theme', r.dataset.theme); } catch (e) {}
+  };
+
+  // ---------- 分頁 ----------
+  const loaded = {};
+  const LOADERS = {dash: loadDash, leads: loadLeads, seq: loadSeq, products: loadProducts, settings: loadSettings};
+  $('#tabs').addEventListener('click', e => {
+    const b = e.target.closest('.tab'); if (!b) return;
+    $$('.tab').forEach(t => t.classList.toggle('on', t === b));
+    $$('[data-view]').forEach(v => v.hidden = v.dataset.view !== b.dataset.tab);
+    if (!loaded[b.dataset.tab]) LOADERS[b.dataset.tab]();
+  });
+  const loading = name => { view(name).innerHTML = '<div class="card empty"><span class="spinner"></span> 載入中…</div>'; };
+  const fail = (name, e) => { view(name).innerHTML = `<div class="card empty">😢 ${esc(e.message)}</div>`; };
+
+  // ---------- 儀表板 ----------
+  async function loadDash(){
+    loading('dash'); loaded.dash = true;
+    try {
+      const d = await api('stats');
+      const pmax = Math.max(1, ...Object.values(d.persona));
+      const nicheTop = Object.entries(d.niche).sort((a,b) => b[1]-a[1]).slice(0, 6);
+      const nmax = Math.max(1, ...nicheTop.map(x => x[1]));
+      const days = [];
+      for (let i = 13; i >= 0; i--) { const t = new Date(Date.now() - i*864e5); const k = String(t.getMonth()+1).padStart(2,'0') + '/' + String(t.getDate()).padStart(2,'0'); days.push([k, d.days[k] || 0]); }
+      const dmax = Math.max(1, ...days.map(x => x[1]));
+      view('dash').innerHTML = `
+        ${mailBanner(d.mail)}
+        <div class="grid g4" style="margin-bottom:16px">
+          <div class="stat"><b>${d.total}</b><span>總名單</span></div>
+          <div class="stat"><b>${d.week}</b><span>近 7 天新增</span></div>
+          <div class="stat"><b>${d.active}</b><span>序列寄送中</span></div>
+          <div class="stat"><b>${d.unsub}</b><span>已退訂</span></div>
+        </div>
+        <div class="card"><h3>📈 近 14 天新增名單</h3>
+          <div class="spark" style="margin-bottom:22px">${days.map(([k,v]) => `<div style="height:${v/dmax*100}%" title="${k}：${v} 人"><span>${k.slice(3)}</span></div>`).join('')}</div>
+        </div>
+        <div class="grid g2">
+          <div class="card"><h3>🧋 奶茶人格分布</h3>
+            ${PERSONAS.map(p => `<div class="bar"><span>${p}</span><div class="t"><div class="v" style="width:${(d.persona[p]||0)/pmax*100}%"></div></div><span class="n">${d.persona[p]||0}</span></div>`).join('')}
+          </div>
+          <div class="card"><h3>🎯 最多人推薦的賽道</h3>
+            ${nicheTop.length ? nicheTop.map(([k,v]) => `<div class="bar"><span>${esc(k)}</span><div class="t"><div class="v" style="width:${v/nmax*100}%"></div></div><span class="n">${v}</span></div>`).join('') : '<p class="muted">還沒有資料</p>'}
+          </div>
+        </div>`;
+    } catch (e) { fail('dash', e); }
+  }
+  function mailBanner(m){
+    if (m.ready) return `<div class="card" style="padding:12px 16px"><span class="pill ok">● 寄信正常</span> <span class="muted">寄信方式：${m.provider === 'resend' ? 'Resend（' + esc(m.fromEmail) + '）' : 'Gmail'}</span></div>`;
+    return `<div class="card" style="padding:12px 16px;border-color:var(--warn)"><span class="pill warn">● 寄信尚未設定完成</span> <span class="muted">到「⚙️ 寄信設定」填寫 Resend 金鑰與寄件信箱，名單才會收到信。</span></div>`;
+  }
+
+  // ---------- 名單 ----------
+  let LEADS = [];
+  async function loadLeads(){
+    loading('leads'); loaded.leads = true;
+    try { LEADS = (await api('leads')).leads; renderLeads(); }
+    catch (e) { fail('leads', e); }
+  }
+  function renderLeads(){
+    view('leads').innerHTML = `
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div><h3>👥 名單（${LEADS.length}）</h3><p class="sub" style="margin:2px 0 0">在網站結果頁填 Email 的人都會出現在這裡</p></div>
+          <div class="row">
+            <input class="input" id="lq" placeholder="搜尋 Email／暱稱" style="width:200px">
+            <select class="input" id="lf" style="width:auto"><option value="">全部狀態</option>${STATUSES.map(s => `<option>${s}</option>`).join('')}</select>
+            <select class="input" id="lp" style="width:auto"><option value="">全部人格</option>${PERSONAS.map(s => `<option>${s}</option>`).join('')}</select>
+            <button class="btn ghost sm" id="csvBtn">⬇️ 匯出 CSV</button>
+            <button class="btn ghost sm" id="reloadLeads">↻</button>
+          </div>
+        </div>
+        <div class="table-wrap" style="margin-top:14px;max-height:65vh"><table>
+          <thead><tr><th>建立時間</th><th>Email</th><th>暱稱</th><th>奶茶人格</th><th>賽道</th><th>受眾</th><th>目標</th><th>序列進度</th><th>下次寄送</th><th>狀態</th></tr></thead>
+          <tbody id="lbody"></tbody></table></div>
+      </div>`;
+    const draw = () => {
+      const q = $('#lq').value.trim().toLowerCase(), f = $('#lf').value, p = $('#lp').value;
+      const list = LEADS.filter(r => (!q || String(r['Email']).toLowerCase().includes(q) || String(r['暱稱']).toLowerCase().includes(q)) && (!f || r['狀態'] === f) && (!p || String(r['奶茶人格']).includes(p)));
+      $('#lbody').innerHTML = list.length ? list.map(r => `<tr>
+        <td>${fmt(r['建立時間'])}</td><td>${esc(r['Email'])}</td><td>${esc(r['暱稱'])}</td><td>${esc(r['奶茶人格'])}</td>
+        <td>${esc(r['賽道1'])}</td><td>${esc(r['受眾'])}</td><td>${esc(r['目標'])}</td><td>${Number(r['已寄序列'])||0} 封</td><td>${fmt(r['下次寄送'])}</td>
+        <td><select data-email="${esc(r['Email'])}">${STATUSES.map(s => `<option ${s === r['狀態'] ? 'selected' : ''}>${s}</option>`).join('')}</select></td></tr>`).join('')
+        : '<tr><td colspan="10" class="empty">沒有符合的名單</td></tr>';
+    };
+    ['lq','lf','lp'].forEach(id => $('#' + id).addEventListener('input', draw));
+    $('#lbody').addEventListener('change', async e => {
+      const sel = e.target.closest('select'); if (!sel) return;
+      const email = sel.dataset.email, status = sel.value;
+      let restart = false;
+      if (status === '訂閱中') restart = confirm('要從第 1 封序列信重新寄給這個人嗎？\n按「取消」＝從原本的進度繼續');
+      try { await api('setLeadStatus', {email, status, restart}); LEADS.find(r => r['Email'] === email)['狀態'] = status; toast('已更新 ✅'); }
+      catch (err) { toast('😢 ' + err.message); }
+    });
+    $('#csvBtn').onclick = () => {
+      const cols = Object.keys(LEADS[0] || {});
+      const csv = [cols].concat(LEADS.map(r => cols.map(c => r[c]))).map(row => row.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob(['﻿' + csv], {type:'text/csv;charset=utf-8'}));
+      a.download = `奶茶定位所名單-${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+    };
+    $('#reloadLeads').onclick = loadLeads;
+    draw();
+  }
+  const fmt = v => { if (!v) return '—'; const d = new Date(v); return isNaN(d) ? esc(v) : `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
+
+  // ---------- 序列信 ----------
+  let SEQ = [];
+  async function loadSeq(){
+    loading('seq'); loaded.seq = true;
+    try { SEQ = (await api('getSequence')).rows.map(r => ({...r, '啟用': r['啟用'] === true || String(r['啟用']).toUpperCase() === 'TRUE'})); renderSeq(); }
+    catch (e) { fail('seq', e); }
+  }
+  function renderSeq(){
+    SEQ.sort((a,b) => (+a['順序']||0) - (+b['順序']||0));
+    view('seq').innerHTML = `
+      <div class="card">
+        <h3>✉️ 序列信</h3>
+        <p class="sub">名單留下 Email 後，依「第幾天寄」自動寄出（每小時檢查一次，只在寄送時段內寄）。內文空一行＝新段落；點下面的變數可以插入到游標位置。</p>
+        <div id="seqList">${SEQ.map((m,i) => `
+          <div class="item ${m['啟用'] ? '' : 'off'}" data-i="${i}">
+            <div class="item-head">
+              <span class="pill">第 ${i+1} 封</span>
+              <label class="muted">留 Email 後第 <input class="input num" type="number" min="0" max="365" data-k="第幾天寄" value="${esc(m['第幾天寄'])}" style="display:inline-block;width:70px;padding:4px 8px"> 天寄</label>
+              <span class="grow"></span>
+              <label class="switch"><input type="checkbox" data-k="啟用" ${m['啟用'] ? 'checked' : ''}><i></i>啟用</label>
+              <button class="btn ghost sm" data-act="up">↑</button><button class="btn ghost sm" data-act="down">↓</button>
+              <button class="btn ghost sm" data-act="test">寄測試</button>
+              <button class="btn ghost sm danger" data-act="del">刪除</button>
+            </div>
+            <label class="f">主旨</label><input class="input" data-k="主旨" value="${esc(m['主旨'])}" maxlength="200">
+            <label class="f">內文</label>
+            <div class="vars">${VARS.map(v => `<button type="button" data-var="${v}">${v}</button>`).join('')}</div>
+            <textarea class="input" data-k="內文">${esc(m['內文'])}</textarea>
+          </div>`).join('') || '<p class="empty">還沒有序列信</p>'}</div>
+        <div class="savebar"><button class="btn ghost" id="addSeq">＋ 新增一封</button><button class="btn" id="saveSeq">💾 儲存序列信</button></div>
+      </div>`;
+    const list = $('#seqList');
+    list.addEventListener('input', e => {
+      const el = e.target.closest('[data-k]'); if (!el) return;
+      const i = +el.closest('.item').dataset.i;
+      SEQ[i][el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value;
+      if (el.type === 'checkbox') el.closest('.item').classList.toggle('off', !el.checked);
+    });
+    list.addEventListener('click', async e => {
+      const v = e.target.closest('[data-var]');
+      if (v) { const ta = $('textarea', v.closest('.item')); insertAt(ta, v.dataset.var); ta.dispatchEvent(new Event('input', {bubbles:true})); return; }
+      const b = e.target.closest('[data-act]'); if (!b) return;
+      const i = +b.closest('.item').dataset.i;
+      if (b.dataset.act === 'del') { if (confirm('確定刪除這封信？（按儲存後生效）')) { SEQ.splice(i,1); renum(); renderSeq(); } }
+      if (b.dataset.act === 'up' && i > 0) { [SEQ[i-1], SEQ[i]] = [SEQ[i], SEQ[i-1]]; renum(); renderSeq(); }
+      if (b.dataset.act === 'down' && i < SEQ.length-1) { [SEQ[i+1], SEQ[i]] = [SEQ[i], SEQ[i+1]]; renum(); renderSeq(); }
+      if (b.dataset.act === 'test') {
+        const to = prompt('寄測試信到哪個 Email？（會先用「已儲存」的版本寄出）', localStorage.getItem('mt-admin-test') || '');
+        if (!to) return;
+        try { localStorage.setItem('mt-admin-test', to); } catch (err) {}
+        await busy(b, async () => { await api('testSend', {to, only: String(i+1)}); toast('測試信寄出了 💌'); });
+      }
+    });
+    $('#addSeq').onclick = () => {
+      const last = SEQ[SEQ.length-1];
+      SEQ.push({'順序': SEQ.length+1, '第幾天寄': last ? (+last['第幾天寄']||0) + 3 : 1, '主旨': '', '內文': '嗨 {暱稱}，\n\n', '啟用': true});
+      renderSeq(); $$('#seqList .item').pop().scrollIntoView({behavior:'smooth', block:'center'});
+    };
+    $('#saveSeq').onclick = e => busy(e.currentTarget, async () => {
+      if (SEQ.some(m => !String(m['主旨']).trim())) throw new Error('每封信都要有主旨');
+      renum(); await api('saveSequence', {rows: SEQ}); toast('序列信已儲存 ✅');
+    });
+  }
+  const renum = () => SEQ.forEach((m,i) => m['順序'] = i+1);
+  function insertAt(ta, text){
+    const s = ta.selectionStart ?? ta.value.length, e = ta.selectionEnd ?? s;
+    ta.value = ta.value.slice(0, s) + text + ta.value.slice(e);
+    ta.focus(); ta.selectionStart = ta.selectionEnd = s + text.length;
+  }
+
+  // ---------- 課程產品 ----------
+  let PRODS = [];
+  async function loadProducts(){
+    loading('products'); loaded.products = true;
+    const t = v => v === true || String(v).toUpperCase() === 'TRUE';
+    try { PRODS = (await api('getProducts')).rows.map(r => ({...r, '啟用': t(r['啟用']), '在結果頁顯示': t(r['在結果頁顯示'])})); renderProducts(); }
+    catch (e) { fail('products', e); }
+  }
+  function renderProducts(){
+    const field = (i, k, label, hint='', type='text') => `<div><label class="f">${label}${hint ? `<span class="h">${hint}</span>` : ''}</label><input class="input" type="${type}" data-k="${k}" value="${esc(PRODS[i][k])}"></div>`;
+    view('products').innerHTML = `
+      <div class="card">
+        <h3>🎁 課程與產品</h3>
+        <p class="sub">在這裡加入你的課程、電子書、諮詢方案。系統會依「適合人格」與「優先序」挑選：結果頁最多顯示 2 個、信件裡的 {課程卡片} 顯示 1 個。</p>
+        <div id="prodList">${PRODS.map((p,i) => `
+          <div class="item ${p['啟用'] ? '' : 'off'}" data-i="${i}">
+            <div class="item-head">
+              <b class="grow" style="color:var(--brown)">${esc(p['名稱'] || '（未命名產品）')}</b>
+              <label class="switch"><input type="checkbox" data-k="啟用" ${p['啟用'] ? 'checked' : ''}><i></i>啟用</label>
+              <label class="switch"><input type="checkbox" data-k="在結果頁顯示" ${p['在結果頁顯示'] ? 'checked' : ''}><i></i>結果頁顯示</label>
+              <button class="btn ghost sm danger" data-act="del">刪除</button>
+            </div>
+            <div class="grid g2">
+              ${field(i,'名稱','名稱')}${field(i,'產品ID','產品ID','英數代號，不可重複')}
+              ${field(i,'一句話介紹','一句話介紹')}${field(i,'價格','價格','例如 NT$ 3,980')}
+              ${field(i,'連結','連結','銷售頁網址','url')}${field(i,'按鈕文字','按鈕文字','例如 立即報名')}
+            </div>
+            <label class="f">適合人格<span class="h">都不選＝全部人格</span></label>
+            <div class="chips" data-personas>${PERSONAS.map(t => `<button type="button" class="chip ${String(p['適合人格']).includes(t) ? 'on' : ''}" data-p="${t}">${t}</button>`).join('')}</div>
+            <label class="f">優先序<span class="h">數字越小越優先</span></label>
+            <input class="input num" type="number" min="1" max="99" data-k="優先序" value="${esc(p['優先序'] || 1)}">
+          </div>`).join('') || '<p class="empty">還沒有產品，按下方「新增產品」</p>'}</div>
+        <div class="savebar"><button class="btn ghost" id="addProd">＋ 新增產品</button><button class="btn" id="saveProd">💾 儲存產品</button></div>
+      </div>`;
+    const list = $('#prodList');
+    list.addEventListener('input', e => {
+      const el = e.target.closest('[data-k]'); if (!el) return;
+      const item = el.closest('.item'), i = +item.dataset.i;
+      PRODS[i][el.dataset.k] = el.type === 'checkbox' ? el.checked : el.value;
+      if (el.dataset.k === '啟用') item.classList.toggle('off', !el.checked);
+      if (el.dataset.k === '名稱') $('.item-head b', item).textContent = el.value || '（未命名產品）';
+    });
+    list.addEventListener('click', e => {
+      const c = e.target.closest('[data-p]');
+      if (c) {
+        c.classList.toggle('on');
+        const item = c.closest('.item'), sel = $$('.chip.on', item).map(x => x.dataset.p);
+        PRODS[+item.dataset.i]['適合人格'] = sel.length ? sel.join(',') : '全部';
+        return;
+      }
+      const b = e.target.closest('[data-act="del"]');
+      if (b && confirm('確定刪除這個產品？（按儲存後生效）')) { PRODS.splice(+b.closest('.item').dataset.i, 1); renderProducts(); }
+    });
+    $('#addProd').onclick = () => {
+      PRODS.push({'產品ID': 'product-' + (PRODS.length + 1), '名稱': '', '一句話介紹': '', '價格': '', '連結': '', '按鈕文字': '了解更多', '適合人格': '全部', '優先序': PRODS.length + 1, '啟用': true, '在結果頁顯示': true});
+      renderProducts(); $$('#prodList .item').pop().scrollIntoView({behavior:'smooth', block:'center'});
+    };
+    $('#saveProd').onclick = e => busy(e.currentTarget, async () => {
+      const bad = PRODS.find(p => p['連結'] && !/^https?:\/\//.test(p['連結']));
+      if (bad) throw new Error(`「${bad['名稱'] || bad['產品ID']}」的連結要用 https:// 開頭`);
+      await api('saveProducts', {rows: PRODS}); toast('產品已儲存 ✅');
+    });
+  }
+
+  // ---------- 寄信設定 ----------
+  async function loadSettings(){
+    loading('settings'); loaded.settings = true;
+    try {
+      const {settings: s, mail} = await api('getSettings');
+      const f = (k, label, hint='', type='text') => `<div><label class="f">${label}${hint ? `<span class="h">${hint}</span>` : ''}</label><input class="input" type="${type}" data-s="${k}" value="${esc(s[k])}"></div>`;
+      view('settings').innerHTML = `
+        ${mailBanner(mail)}
+        <div class="card">
+          <h3>📮 Resend 寄信</h3>
+          <p class="sub">金鑰只會存在 Google 後台的「指令碼屬性」，不會出現在網站或試算表上。</p>
+          <label class="f">寄信方式</label>
+          <div class="chips" id="provider">${['resend','gmail'].map(p => `<button type="button" class="chip ${String(s['寄信方式']||'resend').toLowerCase() === p ? 'on' : ''}" data-v="${p}">${p === 'resend' ? 'Resend（推薦）' : 'Gmail'}</button>`).join('')}</div>
+          <label class="f">Resend API 金鑰<span class="h">${mail.resendKey ? '目前：' + esc(mail.resendKey) : '尚未設定'}</span></label>
+          <div class="row"><input class="input" id="rkey" type="password" placeholder="re_ 開頭，要更換才需要填" style="flex:1;min-width:200px"><button class="btn ghost" id="saveKey">更新金鑰</button></div>
+          <div class="grid g2">
+            ${f('寄件信箱','寄件信箱','網域要先在 Resend 驗證，例如 hello@你的網域.com','email')}
+            ${f('寄件人名稱','寄件人名稱','收件人看到的名字')}
+            ${f('回覆信箱','回覆信箱','讀者按回覆時寄到哪','email')}
+            ${f('報告信主旨','報告信主旨','可用 {暱稱} {人格}')}
+          </div>
+        </div>
+        <div class="card">
+          <h3>⏰ 排程</h3>
+          <div class="grid g4">
+            ${f('寄送時段開始','時段開始','0–23','number')}${f('寄送時段結束','時段結束','0–23','number')}
+            ${f('每次最多寄送','每小時最多寄','封','number')}${f('時區','時區')}
+          </div>
+          ${f('網站網址','網站網址','信件底部的「重新測驗」連結','url')}
+          <div class="savebar"><button class="btn" id="saveSettings">💾 儲存設定</button></div>
+        </div>
+        <div class="card">
+          <h3>🧪 測試與手動操作</h3>
+          <p class="sub">寄一份「報告信＋全部序列信」到你的信箱，確認樣式與內容。</p>
+          <div class="row"><input class="input" id="testTo" type="email" placeholder="你的 Email" style="flex:1;min-width:200px" value="${esc(localStorage.getItem('mt-admin-test') || '')}">
+            <button class="btn ghost" id="testAll">寄全部測試信</button><button class="btn ghost" id="runQueue">立即處理寄信佇列</button></div>
+        </div>`;
+      let provider = String(s['寄信方式'] || 'resend').toLowerCase();
+      $('#provider').addEventListener('click', e => { const c = e.target.closest('.chip'); if (!c) return; provider = c.dataset.v; $$('#provider .chip').forEach(x => x.classList.toggle('on', x === c)); });
+      $('#saveKey').onclick = e => busy(e.currentTarget, async () => {
+        const k = $('#rkey').value.trim(); if (!k) throw new Error('請貼上金鑰');
+        await api('setResendKey', {resendKey: k}); $('#rkey').value = ''; toast('金鑰已更新 🔑'); loadSettings();
+      });
+      $('#saveSettings').onclick = e => busy(e.currentTarget, async () => {
+        const map = {'寄信方式': provider};
+        $$('[data-s]').forEach(el => map[el.dataset.s] = el.value.trim());
+        if (provider === 'resend' && !map['寄件信箱']) throw new Error('用 Resend 時一定要填寄件信箱');
+        await api('saveSettings', {settings: map}); toast('設定已儲存 ✅'); loaded.dash = false;
+      });
+      $('#testAll').onclick = e => busy(e.currentTarget, async () => {
+        const to = $('#testTo').value.trim(); try { localStorage.setItem('mt-admin-test', to); } catch (err) {}
+        await api('testSend', {to}); toast('測試信寄出了，去信箱看看 💌');
+      });
+      $('#runQueue').onclick = e => busy(e.currentTarget, async () => { await api('runQueue'); toast('已處理寄信佇列 ✅'); loaded.leads = false; });
+    } catch (e) { fail('settings', e); }
+  }
+
+  // ---------- 啟動 ----------
+  function start(){
+    $('#loginView').hidden = true; $('#appView').hidden = false;
+    Object.keys(loaded).forEach(k => delete loaded[k]);
+    loadDash();
+  }
+  if (!ENDPOINT) {
+    $('#loginView').hidden = false;
+    $('#loginHint').innerHTML = '⚠️ 還沒設定後台網址。<br>請先完成 <b>backend/後台設定教學.md</b>，再把網址填進 <b>config.js</b>。';
+    $('#loginForm').hidden = true;
+  } else if (KEY) start();
+  else $('#loginView').hidden = false;
+})();
+</script>
+</body>
+</html>

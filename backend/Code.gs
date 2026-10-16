@@ -1,11 +1,15 @@
 /**
- * 奶茶定位所｜後台（Google 試算表 + Apps Script）
+ * 奶茶定位所｜後台（Google 試算表 + Apps Script + Resend）
  *
  * 功能：
  *  1. 接收測驗網站送來的 Email 與測驗結果 → 存進「名單」分頁 → 立刻寄出完整報告
  *  2. 每小時自動檢查「名單」，依「信件序列」分頁的設定寄出後續信件
  *  3. 「產品」分頁放你的課程／產品，會自動推薦給適合的奶茶人格（網站結果頁＋信件裡）
  *  4. 每封信都有取消訂閱連結
+ *  5. 網頁版後台 admin.html：看數據、管理名單、編輯序列信、產品、設定（用後台密碼登入）
+ *
+ * 寄信：預設用 Resend（需要自己的網域）；也可以在「設定」把「寄信方式」改成 gmail。
+ * 金鑰與後台密碼存在「指令碼屬性」，不會出現在試算表或網站上。
  *
  * 安裝步驟請看 backend/後台設定教學.md
  */
@@ -26,10 +30,13 @@ const LEAD_HEADERS = [
 ];
 const SEQ_HEADERS = ['順序', '第幾天寄', '主旨', '內文', '啟用'];
 const PRODUCT_HEADERS = ['產品ID', '名稱', '一句話介紹', '價格', '連結', '按鈕文字', '適合人格', '優先序', '啟用', '在結果頁顯示'];
+const SETTING_KEYS = ['寄信方式', '寄件人名稱', '寄件信箱', '回覆信箱', '網站網址', '報告信主旨', '每次最多寄送', '寄送時段開始', '寄送時段結束', '時區'];
 
 const PERSONA_TITLES = ['知識導師', '人氣主持人', '美感創作者', '療癒陪伴者', '實驗紀錄家'];
 
 const STATUS = { ACTIVE: '訂閱中', UNSUB: '已退訂', DONE: '序列完成' };
+
+const PROP = { RESEND: 'RESEND_API_KEY', ADMIN: 'ADMIN_KEY' };
 
 /* =========================================================
    選單
@@ -38,11 +45,32 @@ function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('🧋 奶茶定位所')
     .addItem('① 初始化後台（第一次使用）', 'setup')
+    .addItem('② 設定 Resend API 金鑰', 'promptResendKey')
+    .addItem('③ 設定網頁後台密碼', 'promptAdminKey')
+    .addSeparator()
     .addItem('寄測試信給自己', 'sendTestToMe')
     .addItem('立即處理寄信佇列', 'processQueue')
-    .addSeparator()
-    .addItem('查看今日剩餘寄信額度', 'showQuota')
     .addToUi();
+}
+
+function promptResendKey() {
+  const ui = SpreadsheetApp.getUi();
+  const r = ui.prompt('設定 Resend API 金鑰', '貼上 Resend 後台建立的 API Key（re_ 開頭）：', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  const key = r.getResponseText().trim();
+  if (!/^re_/.test(key)) { ui.alert('格式不對，Resend 的金鑰是 re_ 開頭喔'); return; }
+  PropertiesService.getScriptProperties().setProperty(PROP.RESEND, key);
+  ui.alert('✅ 已儲存 Resend 金鑰');
+}
+
+function promptAdminKey() {
+  const ui = SpreadsheetApp.getUi();
+  const r = ui.prompt('設定網頁後台密碼', '登入 admin.html 用的密碼（至少 8 個字）：', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  const key = r.getResponseText().trim();
+  if (key.length < 8) { ui.alert('密碼至少要 8 個字'); return; }
+  PropertiesService.getScriptProperties().setProperty(PROP.ADMIN, key);
+  ui.alert('✅ 已儲存後台密碼');
 }
 
 /* =========================================================
@@ -63,24 +91,22 @@ function setup() {
   seq.setColumnWidth(3, 260);
   seq.setColumnWidth(4, 520);
   seq.getRange('D:D').setWrap(true);
-  seq.getRange('E2:E').insertCheckboxes();
+  seq.getRange('E2:E200').insertCheckboxes();
 
   const products = ensureSheet_(ss, SHEETS.PRODUCTS, PRODUCT_HEADERS);
   if (products.getLastRow() < 2) products.getRange(2, 1, SAMPLE_PRODUCTS.length, PRODUCT_HEADERS.length).setValues(SAMPLE_PRODUCTS);
   products.setFrozenRows(1);
-  products.getRange('I2:J').insertCheckboxes();
-  products.getRange('G2:G').setDataValidation(
-    SpreadsheetApp.newDataValidation().requireValueInList(['全部'].concat(PERSONA_TITLES), true).setAllowInvalid(true)
-      .setHelpText('填「全部」或人格名稱；多個人格用逗號分隔，例如：知識導師,實驗紀錄家').build());
+  products.getRange('I2:J200').insertCheckboxes();
 
   const settings = ensureSheet_(ss, SHEETS.SETTINGS, ['項目', '值', '說明']);
-  if (settings.getLastRow() < 2) settings.getRange(2, 1, SAMPLE_SETTINGS.length, 3).setValues(SAMPLE_SETTINGS);
-  settings.setColumnWidth(1, 160); settings.setColumnWidth(2, 320); settings.setColumnWidth(3, 360);
+  const have = settings.getDataRange().getValues().map(r => r[0]);
+  SAMPLE_SETTINGS.filter(r => have.indexOf(r[0]) < 0).forEach(r => settings.appendRow(r));
+  settings.setColumnWidth(1, 160); settings.setColumnWidth(2, 320); settings.setColumnWidth(3, 380);
 
   buildDashboard_(ss);
   installTrigger_();
 
-  ss.toast('後台建立完成！下一步：部署成網頁應用程式（看教學第 3 步）', '🧋 奶茶定位所', 8);
+  ss.toast('後台建立完成！下一步：設定 Resend 金鑰與後台密碼（選單 ②③）', '🧋 奶茶定位所', 8);
 }
 
 function ensureSheet_(ss, name, headers) {
@@ -136,6 +162,21 @@ function doGet(e) {
 function doPost(e) {
   let data;
   try { data = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, error: '資料格式錯誤' }); }
+  if (data.admin) {
+    try { return json_(handleAdmin_(data)); }
+    catch (err) { console.error(err); return json_({ ok: false, error: String(err.message || err) }); }
+  }
+  return handleSignup_(data);
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/* =========================================================
+   收集名單：測驗者在結果頁送出 Email
+   ========================================================= */
+function handleSignup_(data) {
   if (data.hp) return json_({ ok: true });                       // 機器人陷阱欄位有填 → 假裝成功
   const email = String(data.email || '').trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 120) return json_({ ok: false, error: 'Email 格式不正確' });
@@ -158,13 +199,6 @@ function doPost(e) {
   return json_({ ok: true });
 }
 
-function json_(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-}
-
-/* =========================================================
-   名單
-   ========================================================= */
 function upsertLead_(email, d) {
   const sh = SpreadsheetApp.getActive().getSheetByName(SHEETS.LEADS);
   const { rows, col } = readTable_(sh);
@@ -233,6 +267,50 @@ function unsubscribe_(code) {
 }
 
 /* =========================================================
+   寄信：Resend（預設）或 Gmail
+   ========================================================= */
+function sendMail_(opt, settings) {
+  settings = settings || getSettings_();
+  const key = PropertiesService.getScriptProperties().getProperty(PROP.RESEND);
+  if (settings.provider === 'resend') {
+    if (!key) throw new Error('還沒設定 Resend API 金鑰');
+    if (!settings.fromEmail) throw new Error('還沒在「設定」填寫寄件信箱（要用你在 Resend 驗證過的網域）');
+    const payload = {
+      from: `${settings.senderName} <${settings.fromEmail}>`,
+      to: [opt.to],
+      subject: opt.subject,
+      html: opt.html,
+    };
+    if (settings.replyTo) payload.reply_to = settings.replyTo;
+    if (opt.unsubUrl) payload.headers = { 'List-Unsubscribe': `<${opt.unsubUrl}>` };
+    const res = UrlFetchApp.fetch('https://api.resend.com/emails', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: 'Bearer ' + key },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true,
+    });
+    const code = res.getResponseCode();
+    if (code >= 300) {
+      let msg = res.getContentText();
+      try { msg = JSON.parse(msg).message || msg; } catch (e) {}
+      const err = new Error(`Resend 寄送失敗（${code}）：${msg}`);
+      err.rateLimited = code === 429;
+      throw err;
+    }
+    return;
+  }
+  MailApp.sendEmail({
+    to: opt.to, subject: opt.subject, htmlBody: opt.html,
+    name: settings.senderName, replyTo: settings.replyTo || undefined,
+  });
+}
+
+function unsubUrl_(lead) {
+  return ScriptApp.getService().getUrl() + '?action=unsub&c=' + encodeURIComponent(lead['退訂碼'] || '');
+}
+
+/* =========================================================
    排程寄信：每小時跑一次
    ========================================================= */
 function processQueue() {
@@ -249,7 +327,8 @@ function processQueue() {
     const now = new Date();
     let sent = 0;
     for (let i = 0; i < rows.length; i++) {
-      if (sent >= settings.maxPerRun || MailApp.getRemainingDailyQuota() < 1) break;
+      if (sent >= settings.maxPerRun) break;
+      if (settings.provider !== 'resend' && MailApp.getRemainingDailyQuota() < 1) break;
       const r = rows[i], rowNum = i + 2;
       if (r['狀態'] !== STATUS.ACTIVE || !r['Email']) continue;
       const step = Number(r['已寄序列']) || 0;
@@ -262,6 +341,7 @@ function processQueue() {
         sent++;
       } catch (err) {
         console.error('寄送失敗', r['Email'], err);
+        if (err.rateLimited) break;            // 今天的額度用完了，留到下次
         continue;
       }
       const nextStep = step + 1;
@@ -284,22 +364,19 @@ function processQueue() {
 function sendSequenceMail_(lead, mail, settings) {
   const product = findProduct_(lead['推薦產品ID']) || pickProduct_(lead['奶茶人格']);
   const vars = varsFor_(lead, product, settings);
-  const subject = fill_(mail['主旨'], vars);
-  const body = renderBody_(mail['內文'], vars, product);
-  MailApp.sendEmail({
+  sendMail_({
     to: lead['Email'],
-    subject: subject,
-    htmlBody: layout_(body, lead, settings),
-    name: settings.senderName,
-    replyTo: settings.replyTo || undefined,
-  });
+    subject: fill_(mail['主旨'], vars),
+    html: layout_(renderBody_(mail['內文'], vars, product), lead, settings),
+    unsubUrl: unsubUrl_(lead),
+  }, settings);
 }
 
 /* =========================================================
    報告信（填完 Email 立即寄出）
    ========================================================= */
-function sendReport_(lead, rep) {
-  const settings = getSettings_();
+function sendReport_(lead, rep, settings) {
+  settings = settings || getSettings_();
   const product = findProduct_(lead['推薦產品ID']) || pickProduct_(lead['奶茶人格']);
   const e = escapeHtml_;
   const list = arr => (arr || []).map(x => `<li style="margin:4px 0">${e(x)}</li>`).join('');
@@ -333,13 +410,12 @@ function sendReport_(lead, rep) {
     ${product ? h('🎁 推薦給你') + productCard_(product) : ''}
     <p style="margin-top:26px">接下來幾天，我會再寄幾封信給你，教你把這份定位變成真正的內容。記得留意信箱喔！</p>`;
 
-  MailApp.sendEmail({
+  sendMail_({
     to: lead['Email'],
     subject: fill_(settings.reportSubject, varsFor_(lead, product, settings)),
-    htmlBody: layout_(body, lead, settings),
-    name: settings.senderName,
-    replyTo: settings.replyTo || undefined,
-  });
+    html: layout_(body, lead, settings),
+    unsubUrl: unsubUrl_(lead),
+  }, settings);
 }
 
 /* =========================================================
@@ -419,7 +495,6 @@ function renderBody_(text, vars, product) {
 }
 
 function layout_(inner, lead, settings) {
-  const unsub = ScriptApp.getService().getUrl() + '?action=unsub&c=' + encodeURIComponent(lead['退訂碼'] || '');
   return `<div style="background:#FBF5EC;padding:24px 12px;font-family:'Noto Sans TC',-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;color:#3B2A20;line-height:1.7">
     <div style="max-width:560px;margin:0 auto;background:#FFFDF9;border:2px solid #E6D3BD;border-radius:24px;padding:26px 22px">
       ${inner}
@@ -427,8 +502,156 @@ function layout_(inner, lead, settings) {
     </div>
     <div style="max-width:560px;margin:14px auto 0;text-align:center;font-size:12px;color:#8E7766">
       你會收到這封信，是因為你在奶茶定位所留下 Email 並同意接收內容。<br>
-      ${settings.siteUrl ? `<a href="${escapeHtml_(settings.siteUrl)}" style="color:#8A5E3F">重新測驗</a>　·　` : ''}<a href="${unsub}" style="color:#8A5E3F">取消訂閱</a>
+      ${settings.siteUrl ? `<a href="${escapeHtml_(settings.siteUrl)}" style="color:#8A5E3F">重新測驗</a>　·　` : ''}<a href="${unsubUrl_(lead)}" style="color:#8A5E3F">取消訂閱</a>
     </div></div>`;
+}
+
+/* =========================================================
+   網頁版後台 API（admin.html 用）
+   ========================================================= */
+function handleAdmin_(d) {
+  const adminKey = PropertiesService.getScriptProperties().getProperty(PROP.ADMIN);
+  if (!adminKey) return { ok: false, error: '還沒設定後台密碼（試算表選單 ③）' };
+  if (String(d.key || '') !== adminKey) {
+    Utilities.sleep(800);                       // 拖慢猜密碼
+    return { ok: false, error: '密碼錯誤', auth: false };
+  }
+  const ss = SpreadsheetApp.getActive();
+  switch (d.action) {
+    case 'login':
+      return { ok: true };
+
+    case 'stats': {
+      const { rows } = readTable_(ss.getSheetByName(SHEETS.LEADS));
+      const weekAgo = Date.now() - 7 * 864e5;
+      const persona = {}, niche = {}, days = {};
+      rows.forEach(r => {
+        const t = PERSONA_TITLES.find(p => String(r['奶茶人格']).indexOf(p) >= 0) || '其他';
+        persona[t] = (persona[t] || 0) + 1;
+        if (r['賽道1']) niche[r['賽道1']] = (niche[r['賽道1']] || 0) + 1;
+        const ts = r['建立時間'] ? new Date(r['建立時間']) : null;
+        if (ts && ts.getTime() >= Date.now() - 14 * 864e5) {
+          const k = Utilities.formatDate(ts, getSettings_().timezone, 'MM/dd');
+          days[k] = (days[k] || 0) + 1;
+        }
+      });
+      const count = s => rows.filter(r => r['狀態'] === s).length;
+      return {
+        ok: true,
+        total: rows.length,
+        active: count(STATUS.ACTIVE), unsub: count(STATUS.UNSUB), done: count(STATUS.DONE),
+        week: rows.filter(r => r['建立時間'] && new Date(r['建立時間']).getTime() >= weekAgo).length,
+        persona, niche, days,
+        mail: mailStatus_(),
+      };
+    }
+
+    case 'leads': {
+      const { rows } = readTable_(ss.getSheetByName(SHEETS.LEADS));
+      return { ok: true, leads: rows.map(r => {
+        const o = {};
+        LEAD_HEADERS.filter(h => h !== '退訂碼').forEach(h => { o[h] = r[h] instanceof Date ? r[h].toISOString() : r[h]; });
+        return o;
+      }).reverse() };
+    }
+
+    case 'setLeadStatus': {
+      if ([STATUS.ACTIVE, STATUS.UNSUB, STATUS.DONE].indexOf(d.status) < 0) return { ok: false, error: '狀態不正確' };
+      const sh = ss.getSheetByName(SHEETS.LEADS);
+      const { rows, col } = readTable_(sh);
+      const idx = rows.findIndex(r => String(r['Email']).toLowerCase() === String(d.email).toLowerCase());
+      if (idx < 0) return { ok: false, error: '找不到這筆名單' };
+      sh.getRange(idx + 2, col['狀態'] + 1).setValue(d.status);
+      if (d.status === STATUS.ACTIVE && d.restart) {
+        sh.getRange(idx + 2, col['已寄序列'] + 1).setValue(0);
+        sh.getRange(idx + 2, col['下次寄送'] + 1).setValue(new Date());
+      }
+      return { ok: true };
+    }
+
+    case 'getSequence':
+      return { ok: true, rows: readTable_(ss.getSheetByName(SHEETS.SEQ)).rows };
+    case 'saveSequence':
+      writeTable_(ss.getSheetByName(SHEETS.SEQ), SEQ_HEADERS, (d.rows || []).map(r => ({
+        '順序': Number(r['順序']) || 0, '第幾天寄': Number(r['第幾天寄']) || 0,
+        '主旨': clip_(r['主旨'], 200), '內文': clip_(r['內文'], 20000), '啟用': !!r['啟用'],
+      })));
+      return { ok: true };
+
+    case 'getProducts':
+      return { ok: true, rows: readTable_(ss.getSheetByName(SHEETS.PRODUCTS)).rows };
+    case 'saveProducts': {
+      const ids = {};
+      const rows = (d.rows || []).map(r => {
+        const id = clip_(r['產品ID'], 40).trim();
+        if (!id) throw new Error('每個產品都要有產品ID');
+        if (ids[id]) throw new Error('產品ID 重複：' + id);
+        ids[id] = 1;
+        return {
+          '產品ID': id, '名稱': clip_(r['名稱'], 100), '一句話介紹': clip_(r['一句話介紹'], 300),
+          '價格': clip_(r['價格'], 40), '連結': clip_(r['連結'], 500), '按鈕文字': clip_(r['按鈕文字'], 20),
+          '適合人格': clip_(r['適合人格'] || '全部', 100), '優先序': Number(r['優先序']) || 99,
+          '啟用': !!r['啟用'], '在結果頁顯示': !!r['在結果頁顯示'],
+        };
+      });
+      writeTable_(ss.getSheetByName(SHEETS.PRODUCTS), PRODUCT_HEADERS, rows);
+      return { ok: true };
+    }
+
+    case 'getSettings': {
+      const sh = ss.getSheetByName(SHEETS.SETTINGS);
+      const map = {};
+      sh.getDataRange().getValues().slice(1).forEach(r => { map[String(r[0]).trim()] = r[1]; });
+      return { ok: true, settings: map, mail: mailStatus_() };
+    }
+    case 'saveSettings': {
+      const sh = ss.getSheetByName(SHEETS.SETTINGS);
+      const values = sh.getDataRange().getValues();
+      Object.keys(d.settings || {}).forEach(k => {
+        if (SETTING_KEYS.indexOf(k) < 0) return;
+        const i = values.findIndex(r => String(r[0]).trim() === k);
+        const v = clip_(d.settings[k], 300);
+        if (i > 0) sh.getRange(i + 1, 2).setValue(v);
+        else sh.appendRow([k, v, '']);
+      });
+      return { ok: true };
+    }
+    case 'setResendKey': {
+      const k = String(d.resendKey || '').trim();
+      if (!/^re_/.test(k)) return { ok: false, error: 'Resend 金鑰是 re_ 開頭' };
+      PropertiesService.getScriptProperties().setProperty(PROP.RESEND, k);
+      return { ok: true, mail: mailStatus_() };
+    }
+
+    case 'testSend': {
+      const to = String(d.to || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(to)) return { ok: false, error: 'Email 格式不正確' };
+      sendTest_(to, d.only);
+      return { ok: true };
+    }
+
+    case 'runQueue':
+      processQueue();
+      return { ok: true };
+  }
+  return { ok: false, error: '未知的動作' };
+}
+
+function mailStatus_() {
+  const s = getSettings_();
+  const key = PropertiesService.getScriptProperties().getProperty(PROP.RESEND) || '';
+  return {
+    provider: s.provider,
+    resendKey: key ? key.slice(0, 6) + '••••' + key.slice(-4) : '',
+    fromEmail: s.fromEmail,
+    ready: s.provider === 'resend' ? !!(key && s.fromEmail) : true,
+  };
+}
+
+function writeTable_(sh, headers, objs) {
+  const last = sh.getLastRow();
+  if (last > 1) sh.getRange(2, 1, last - 1, Math.max(headers.length, sh.getLastColumn())).clearContent();
+  if (objs.length) sh.getRange(2, 1, objs.length, headers.length).setValues(objs.map(o => headers.map(h => o[h] === undefined ? '' : o[h])));
 }
 
 /* =========================================================
@@ -436,25 +659,31 @@ function layout_(inner, lead, settings) {
    ========================================================= */
 function sendTestToMe() {
   const me = Session.getActiveUser().getEmail();
-  const settings = getSettings_();
-  const lead = {
-    'Email': me, '暱稱': '測試小粉圓', '奶茶人格': '伯爵奶茶・知識導師', '副口味': '黑糖珍珠鮮奶・人氣主持人',
-    '賽道1': '職場成長', '賽道2': '科技 AI', '受眾': '上班族', '定位句': '我是測試小粉圓，一位知識導師型的職場成長創作者。',
-    '退訂碼': 'test',
-  };
-  sendReport_(lead, {
-    slogan: '把複雜的事，泡成一杯好入口的知識茶。',
-    scores: [{ name: '知識力', value: 86 }, { name: '表達力', value: 70 }, { name: '美感力', value: 52 }, { name: '共感力', value: 48 }, { name: '行動力', value: 40 }],
-    strengths: ['擅長拆解問題、整理成步驟與框架', '內容收藏率高'], blindSpots: ['容易寫得太硬太長'],
-    directions: [{ name: '職場成長', pct: 88, pillars: ['職場技能', '溝通與人際', '轉職故事'], forms: '口播短影音', monetize: '線上課' }],
-    statement: lead['定位句'], bio: '💼 測試小粉圓｜職場成長 × 知識導師', platforms: ['YouTube 中長片'], ideas: ['上班族最常踩的 3 個地雷'],
-  });
-  listSequence_().forEach(m => sendSequenceMail_(lead, Object.assign({}, m, { '主旨': '[測試 第' + m['第幾天寄'] + '天] ' + m['主旨'] }), settings));
+  sendTest_(me);
   SpreadsheetApp.getActive().toast('已寄出測試信到 ' + me, '🧋 奶茶定位所', 6);
 }
 
-function showQuota() {
-  SpreadsheetApp.getUi().alert('今天還可以寄 ' + MailApp.getRemainingDailyQuota() + ' 封信。\n（一般 Gmail 帳號每天約 100 封，Google Workspace 約 1500 封）');
+/* only：不填＝報告信＋全部序列信；'report'＝只寄報告信；數字＝只寄第幾封序列信 */
+function sendTest_(to, only) {
+  const settings = getSettings_();
+  const lead = {
+    'Email': to, '暱稱': '測試小粉圓', '奶茶人格': '伯爵奶茶・知識導師', '副口味': '黑糖珍珠鮮奶・人氣主持人',
+    '賽道1': '職場成長', '賽道2': '科技 AI', '受眾': '上班族', '定位句': '我是測試小粉圓，一位知識導師型的職場成長創作者。',
+    '退訂碼': 'test',
+  };
+  if (!only || only === 'report') {
+    sendReport_(lead, {
+      slogan: '把複雜的事，泡成一杯好入口的知識茶。',
+      scores: [{ name: '知識力', value: 86 }, { name: '表達力', value: 70 }, { name: '美感力', value: 52 }, { name: '共感力', value: 48 }, { name: '行動力', value: 40 }],
+      strengths: ['擅長拆解問題、整理成步驟與框架', '內容收藏率高'], blindSpots: ['容易寫得太硬太長'],
+      directions: [{ name: '職場成長', pct: 88, pillars: ['職場技能', '溝通與人際', '轉職故事'], forms: '口播短影音', monetize: '線上課' }],
+      statement: lead['定位句'], bio: '💼 測試小粉圓｜職場成長 × 知識導師', platforms: ['YouTube 中長片'], ideas: ['上班族最常踩的 3 個地雷'],
+    }, settings);
+  }
+  listSequence_().forEach((m, i) => {
+    if (only && only !== 'all' && Number(only) !== i + 1) return;
+    sendSequenceMail_(lead, Object.assign({}, m, { '主旨': '[測試 第' + m['第幾天寄'] + '天] ' + m['主旨'] }), settings);
+  });
 }
 
 /* =========================================================
@@ -482,8 +711,10 @@ function getSettings_() {
   const map = {};
   if (sh) sh.getDataRange().getValues().slice(1).forEach(r => { map[String(r[0]).trim()] = r[1]; });
   return {
+    provider: String(map['寄信方式'] || 'resend').trim().toLowerCase() === 'gmail' ? 'gmail' : 'resend',
     senderName: String(map['寄件人名稱'] || '奶茶定位所'),
-    replyTo: String(map['回覆信箱'] || ''),
+    fromEmail: String(map['寄件信箱'] || '').trim(),
+    replyTo: String(map['回覆信箱'] || '').trim(),
     siteUrl: String(map['網站網址'] || ''),
     reportSubject: String(map['報告信主旨'] || '🧋 {暱稱}，你的自媒體定位報告來囉！'),
     maxPerRun: Number(map['每次最多寄送']) || 40,
@@ -506,14 +737,16 @@ function escapeHtml_(s) {
 }
 
 /* =========================================================
-   範例資料（第一次初始化時寫入，之後直接在試算表修改）
+   範例資料（第一次初始化時寫入，之後在網頁後台或試算表修改）
    ========================================================= */
 const SAMPLE_SETTINGS = [
+  ['寄信方式', 'resend', 'resend 或 gmail（Gmail 每天約 100 封、寄件者是你的 Gmail）'],
   ['寄件人名稱', '奶茶定位所', '收件人看到的寄件者名字，可改成你的名字或品牌'],
-  ['回覆信箱', '', '讀者按「回覆」時寄到哪裡；空白＝你的 Gmail'],
+  ['寄件信箱', '', '用 Resend 時必填，例如 hello@你的網域.com（網域要先在 Resend 驗證）'],
+  ['回覆信箱', '', '讀者按「回覆」時寄到哪裡，例如你的 Gmail'],
   ['網站網址', 'https://daxingcourse.github.io/self-media-positioning/', '信件底部「重新測驗」連結'],
   ['報告信主旨', '🧋 {暱稱}，你的自媒體定位報告來囉！', '可用變數：{暱稱} {人格}'],
-  ['每次最多寄送', 40, '每小時排程最多寄幾封（避免超過 Gmail 每日額度）'],
+  ['每次最多寄送', 40, '每小時排程最多寄幾封（Resend 免費版每天 100 封）'],
   ['寄送時段開始', 9, '幾點之後才寄（24 小時制）'],
   ['寄送時段結束', 21, '幾點之前寄完'],
   ['時區', 'Asia/Taipei', ''],

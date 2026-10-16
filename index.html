@@ -415,6 +415,7 @@
 
 <div class="toast" id="toast" role="status"></div>
 
+<script src="config.js"></script>
 <script>
 (() => {
   // ---------- data ----------
@@ -526,10 +527,8 @@
   const TRAIT_MAX = TKEYS.reduce((m,k)=>(m[k]=QUIZ.filter(x=>x.o.some(o=>o[1]===k)).length, m),{});
 
   // ---------- state ----------
-  // ====== 後台設定 ======
-  // 把 Google Apps Script 部署後拿到的「網頁應用程式網址」貼在這裡（教學：backend/後台設定教學.md）
-  // 留空的話，寄送報告與課程推薦會自動隱藏。
-  const ENDPOINT = '';
+  // 後台網址在 config.js 設定
+  const ENDPOINT = ((window.MILKTEA_CONFIG || {}).ENDPOINT || '').trim();
 
   const KEY = 'milktea-positioning-v1';
   const blank = () => ({step:0, nick:'', exp:'', interests:[], audience:[], goal:[], face:[], time:[], answers:[], qi:0});
@@ -933,8 +932,8 @@
       <div class="btns no-print">
         <button class="btn ghost" id="retake">↺ 重新測驗</button>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn ghost" id="shareBtn">💌 分享給朋友</button>
           <button class="btn ghost" id="copyBtn">📋 複製報告</button>
-          <button class="btn ghost" id="dlBtn">⬇️ 下載 .md</button>
           <button class="btn" id="printBtn">🖨️ 列印 / 存 PDF</button>
         </div>
       </div>`;
@@ -975,12 +974,7 @@
       try { await navigator.clipboard.writeText(reportMd()); toast('已複製報告 🧋'); }
       catch(e){ toast('複製失敗，請改用下載'); }
     };
-    $('#dlBtn').onclick = () => {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([reportMd()], {type:'text/markdown;charset=utf-8'}));
-      a.download = `${nick}-自媒體定位報告.md`; a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-    };
+    $('#shareBtn').onclick = () => { setFab(true); fabMain.focus(); };
     $('#printBtn').onclick = () => window.print();
   }
   // ---------- 寄送報告＋收名單（送到 Google Apps Script 後台）----------
