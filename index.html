@@ -182,6 +182,20 @@
   .persona > *:not(.ambient){position:relative;z-index:1}
   .persona .name{font-size:clamp(26px,6vw,34px);margin:6px 0 4px}
   .persona .slogan{color:var(--muted);font-size:15px}
+  .persona .blend-title{font-family:'Huninn',sans-serif;color:var(--caramel);font-size:clamp(18px,4.5vw,22px);margin:-2px 0 6px}
+  .recipe{display:flex;align-items:stretch;justify-content:center;gap:6px;margin-top:14px}
+  .rpart{flex:1 1 0;min-width:0;max-width:220px;text-align:center;background:var(--foam);border-radius:18px;padding:12px 8px}
+  .rpart b{display:block;font-size:14px;margin-top:6px}
+  .rpart span:not(.rcup){display:block;font-size:12.5px;color:var(--muted)}
+  .rplus{align-self:center}
+  @media (max-width:520px){.rpart{padding:10px 5px;border-radius:14px}.rpart b{font-size:12.5px}.rpart span:not(.rcup){font-size:11px}.rcup{width:24px;height:29px}.rplus{font-size:16px}}
+  .rpart.result{border:2px solid var(--caramel)}
+  .recipe .rpart span.rlabel{display:block;font-size:11.5px;color:var(--caramel);font-weight:700;margin-bottom:4px}
+  .rcup{display:inline-block;width:30px;height:36px;border-radius:4px 4px 10px 10px;border:2.5px solid #8A5E3F}
+  .rplus{font-family:'Huninn',sans-serif;font-size:22px;color:var(--caramel)}
+  .perk{background:var(--foam);border-radius:18px;padding:12px 14px}
+  .perk h3{font-size:15px;margin:0 0 4px}
+  .perk p{margin:0;font-size:14px}
   .badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
   .badge{background:var(--foam);color:var(--brown);border-radius:99px;padding:5px 13px;font-size:13px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -437,6 +451,10 @@
       blind:['容易寫得太硬太長，記得加故事和例子','追求完美導致發文慢，先求有再求好'],
       style:'教學拆解、懶人包、清單整理、觀念圖解',
       tone:'條理清楚、像學長姐分享乾貨，多用步驟和例子',
+      likes:'把複雜觀念講到秒懂的說書頻道、讓人一直按收藏的懶人包圖卡帳號',
+      firstPost:'寫一篇「新手最常問的 5 個問題」懶人包',
+      cheer:'你整理的每一份筆記，都在幫某個人少走好幾年冤枉路。',
+      buddy:'talk',
     },
     talk: {
       drink:'黑糖珍珠鮮奶', title:'人氣主持人', color:'#8A5E3F', topping:'🎙️',
@@ -446,6 +464,10 @@
       blind:['小心只有娛樂沒有記憶點，要固定主題','情緒起伏大時，給自己一套發文 SOP'],
       style:'口播短影音、街訪、開箱評論、直播互動',
       tone:'活潑有梗、口語直接，像朋友聊天',
+      likes:'街訪節目、開箱評論、聊天型 Podcast 的主持人',
+      firstPost:'拍一支 60 秒口播：「關於 ___，我有不一樣的看法」',
+      cheer:'你的聲音有溫度，大家不只想看內容，更想看見「你」。',
+      buddy:'know',
     },
     create: {
       drink:'芋泥波波', title:'美感創作者', color:'#B79CC9', topping:'🎨',
@@ -455,6 +477,10 @@
       blind:['美而無用會被滑過，記得給「實用理由」','不要等靈感，建立固定模板提高產量'],
       style:'圖文輪播、美感 Vlog、作品過程、氛圍短片',
       tone:'有質感、溫柔細膩，重視畫面和美感描述',
+      likes:'質感 Vlog、精緻圖文輪播、作品過程縮時的創作者',
+      firstPost:'發一組 5 張的輪播：「我的 ___ 風格公式」',
+      cheer:'你看見的美，會變成別人生活裡的一點光。',
+      buddy:'act',
     },
     care: {
       drink:'蜂蜜鮮奶茶', title:'療癒陪伴者', color:'#E3B873', topping:'🍯',
@@ -464,6 +490,10 @@
       blind:['小心情緒勞動，設定回覆界線','需要搭配具體方法，不只是安慰'],
       style:'心情短文、真實故事、Q&A 解惑、陪伴直播',
       tone:'溫暖有同理心，先接住情緒再給方法',
+      likes:'心情語錄、讀者來信、深夜陪伴直播的創作者',
+      firstPost:'寫一篇「如果你也曾經 ___，我想對你說」',
+      cheer:'你的溫柔不是軟弱，是很多人最需要的力量。',
+      buddy:'know',
     },
     act: {
       drink:'焙茶拿鐵', title:'實驗紀錄家', color:'#9C7A54', topping:'🧪',
@@ -473,7 +503,36 @@
       blind:['記錄≠內容，要幫觀眾整理「所以呢」','嘗試太多會失焦，鎖定 1 個主軸'],
       style:'挑戰企劃、Vlog 紀錄、前後對比、實測評比',
       tone:'真實直率、用親身實測說話，帶點冒險感',
+      likes:'30 天挑戰、前後對比、實測評比的創作者',
+      firstPost:'開一個「我試了 7 天 ___」的小挑戰，每天記錄一點',
+      cheer:'每一次嘗試都算數，你走過的路就是最好的內容。',
+      buddy:'create',
     },
+  };
+
+  // 主口味 × 副口味 = 20 種專屬特調（5 大奶茶仍是「家族」，後台統計與課程推薦照舊用家族）
+  // 特調稱號刻意不重複 5 大家族的名稱，避免後台依名稱統計時算錯
+  const BLENDS = {
+    'know-talk':   {name:'伯爵黑糖珍奶', title:'會講故事的教授', slogan:'把乾貨講成脫口秀，聽完就記住。', power:'用聊天的口吻，把難懂的觀念講到秒懂', idea:'「3 分鐘講懂一個觀念」口播系列'},
+    'know-create': {name:'伯爵芋泥奶茶', title:'圖解系學霸', slogan:'知識也可以很好看。', power:'一個觀念畫成一張圖，看一眼就懂', idea:'「一張圖看懂 ___」圖解輪播系列'},
+    'know-care':   {name:'伯爵蜂蜜奶茶', title:'溫柔的人生顧問', slogan:'給你方法，也接住你的心情。', power:'專業但不說教，讓人願意聽下去', idea:'每週一題的「讀者提問信箱」'},
+    'know-act':    {name:'伯爵焙茶拿鐵', title:'實證派研究員', slogan:'沒有親自驗證過的知識，我不分享。', power:'理論加實測，說服力加倍', idea:'「我照著這本書做了 30 天」實證系列'},
+    'talk-know':   {name:'黑糖伯爵珍奶', title:'最有料的主播', slogan:'一開口就有料，聊天也能長知識。', power:'把熱門話題講出自己的觀點', idea:'每週熱門話題「懶人解說」'},
+    'talk-create': {name:'黑糖芋泥波波', title:'鏡頭前的風格明星', slogan:'有梗又好看，一滑到就停不下來。', power:'畫面和口條兼具，辨識度超高', idea:'有質感的開箱或風格短劇'},
+    'talk-care':   {name:'黑糖蜂蜜鮮奶', title:'大家的知心好朋友', slogan:'像朋友一樣陪你聊，聊完心裡暖暖的。', power:'親和力爆表，留言區永遠很熱鬧', idea:'「回覆留言」影片或深夜聊天直播'},
+    'talk-act':    {name:'黑糖焙茶拿鐵', title:'挑戰系實況王', slogan:'說到做到，全程開直播給你看。', power:'臨場反應好，挑戰企劃自帶笑點', idea:'「我能不能做到？」挑戰企劃'},
+    'create-know': {name:'芋泥伯爵波波', title:'質感系知識設計師', slogan:'把乾貨裝進一個好看的杯子裡。', power:'資訊整理成精美模板，讓人想存想轉', idea:'可以直接下載使用的精美懶人包'},
+    'create-talk': {name:'芋泥黑糖波波', title:'有質感的說書人', slogan:'好看又好聽，是你的獨家風格。', power:'用氛圍畫面配上旁白，說出好故事', idea:'氛圍 Vlog 加上自己的旁白'},
+    'create-care': {name:'芋泥蜂蜜鮮奶', title:'溫柔的畫面詩人', slogan:'用畫面說出大家說不出口的心情。', power:'把情緒變成看得見的畫面', idea:'心情語錄圖卡系列'},
+    'create-act':  {name:'芋泥焙茶拿鐵', title:'生活改造家', slogan:'動手把日子變好看，改造前後就是你的招牌。', power:'改造前後的對比，最吸睛也最好分享', idea:'「改造前 vs 改造後」企劃'},
+    'care-know':   {name:'蜂蜜伯爵奶茶', title:'暖心成長教練', slogan:'先懂你，再陪你一步一步變好。', power:'同理心加上具體方法，陪人真的改變', idea:'「21 天陪跑計畫」系列'},
+    'care-talk':   {name:'蜂蜜黑糖鮮奶', title:'溫暖的電台主持', slogan:'你的聲音，是很多人睡前的陪伴。', power:'聲音有溫度，聽了就安心', idea:'晚安 Podcast 或睡前陪伴直播'},
+    'care-create': {name:'蜂蜜芋泥鮮奶', title:'療癒系手帳家', slogan:'把溫柔做成看得見的小日子。', power:'療癒的美感，讓人一看就放鬆', idea:'「慢生活日記」圖文或 Vlog'},
+    'care-act':    {name:'蜂蜜焙茶拿鐵', title:'陪你一起試的好夥伴', slogan:'我先試，你再跟上，一起慢慢變好。', power:'帶著粉絲一起行動，社群黏著度高', idea:'「一起打卡 7 天」小挑戰'},
+    'act-know':    {name:'焙茶伯爵拿鐵', title:'數據控實測王', slogan:'數字會說話，我幫你試到最後一步。', power:'用數據和比較表，給出最實在的答案', idea:'「5 款實測評比」比較表'},
+    'act-talk':    {name:'焙茶黑糖拿鐵', title:'行動派冒險家', slogan:'人生就是一場冒險，跟上就對了！', power:'說走就走，臨場感十足', idea:'「人生第一次 ___」系列'},
+    'act-create':  {name:'焙茶芋泥拿鐵', title:'生活實驗藝術家', slogan:'每次嘗試，都拍成一部好看的小電影。', power:'實驗過程也拍得很有美感', idea:'有質感的「實驗日記」Vlog'},
+    'act-care':    {name:'焙茶蜂蜜拿鐵', title:'真誠的成長紀錄者', slogan:'不完美也沒關係，真實的路最有力量。', power:'敢分享失敗和脆弱，讓人特別有共鳴', idea:'不修飾的「成長日記」'},
   };
 
   const NICHES = [
@@ -705,12 +764,13 @@
         <animate attributeName="opacity" from="0" to="1" dur=".8s"/></polygon>${dots}${labels}</svg>`;
   }
 
-  function cupSVG(color){
+  function cupSVG(color, color2){
     return `<svg class="cup" viewBox="0 0 160 190" aria-hidden="true">
       <rect class="straw" x="92" y="2" width="12" height="70" rx="6" fill="var(--pink)" transform="rotate(14 98 37)"/>
       <ellipse cx="80" cy="44" rx="62" ry="14" fill="var(--caramel)"/>
       <path d="M26 50h108l-12 124a14 14 0 0 1-14 12H52a14 14 0 0 1-14-12z" fill="#F4E6D3" stroke="#8A5E3F" stroke-width="4" stroke-linejoin="round"/>
       <path d="M30 84h100l-8 92a12 12 0 0 1-12 10H50a12 12 0 0 1-12-10z" fill="${color}"/>
+      ${color2 ? `<path d="M126.5 136l-4.5 40a12 12 0 0 1-12 10H50a12 12 0 0 1-12-10l-4.5-40q23 8 46.5 0t46.5 0z" fill="${color2}"/>` : ''}
       <g class="eyes"><ellipse cx="62" cy="106" rx="7" ry="9" fill="var(--boba)"/><ellipse cx="98" cy="106" rx="7" ry="9" fill="var(--boba)"/>
         <g class="pupils"><circle cx="64" cy="102" r="2.6" fill="#fff"/><circle cx="100" cy="102" r="2.6" fill="#fff"/></g></g>
       <g class="happy-eyes" fill="none" stroke="var(--boba)" stroke-width="4" stroke-linecap="round"><path d="M55 108q7-10 14 0"/><path d="M91 108q7-10 14 0"/></g>
@@ -722,16 +782,17 @@
 
   // ---------- 結果頁吉祥物互動：眼睛跟著游標、戳一戳會跳、會說話 ----------
   const POKE_LINES = {
-    know:['你知道嗎？收藏數就是你的超能力 📚','今天也來整理一份懶人包吧！','複雜的事交給你，大家就放心了～'],
-    talk:['開麥啦！鏡頭最愛你 🎤','你一開口，氣氛就甜了！','今天要不要來拍一支口播？'],
-    create:['這個配色…是你的品味沒錯 🎨','每一格都好好看！','靈感來了就快記下來～'],
-    care:['謝謝你總是這麼溫柔 💗','你的一句話，可能就是別人的光','今天也要記得照顧自己喔'],
-    act:['衝啊！今天要實測什麼？🚀','說做就做，這就是你！','失敗也是很棒的素材喔～'],
+    know:['你知道嗎？收藏數就是你的超能力 📚','今天也來整理一份懶人包吧！','複雜的事交給你，大家就放心了～','先寫出來，完美可以下一版再說 ✍️','有人正在搜尋你知道的答案喔！'],
+    talk:['開麥啦！鏡頭最愛你 🎤','你一開口，氣氛就甜了！','今天要不要來拍一支口播？','講錯也沒關係，真實最可愛 😆','你的觀點，值得被聽見！'],
+    create:['這個配色…是你的品味沒錯 🎨','每一格都好好看！','靈感來了就快記下來～','好看之外，再加一個實用理由吧！','做一個模板，之後就輕鬆了 ✨'],
+    care:['謝謝你總是這麼溫柔 💗','你的一句話，可能就是別人的光','今天也要記得照顧自己喔','溫柔也可以很有方法喔 🌷','不用回覆每一則，先照顧好自己～'],
+    act:['衝啊！今天要實測什麼？🚀','說做就做，這就是你！','失敗也是很棒的素材喔～','記得幫大家整理「所以呢？」📝','一次專心一個挑戰就好！'],
   };
   const SHY_LINES = ['好癢喔～ >///<','再戳我要冒泡泡了！','嘿嘿，被你發現了 ✨','珍珠要被你戳出來了啦！'];
   const FLOATIES = ['💗','✨','🫧','⭐','🧋','💛'];
   let mascotCleanup = null;
-  function setupMascot(main, nick, drink){
+  function setupMascot(main, nick, drink, extra = []){
+    const lines = [...POKE_LINES[main], ...extra];
     if (mascotCleanup) mascotCleanup();
     const stage = $('#mascot'), wrap = $('.cup-wrap', stage), speech = $('#speech'), card = stage.closest('.persona');
     const pupils = $('.pupils', stage);
@@ -760,7 +821,7 @@
       burst(x, y, cls === 'spin' ? 10 : 4);
       if (pokes % 10 === 0) say(`哇！你已經戳我 ${pokes} 下了，轉個圈給你看 🌀`);
       else if (pokes % 4 === 0) say(pick(SHY_LINES));
-      else say(pick(POKE_LINES[main]));
+      else say(pick(lines));
       $('#pokeHint').textContent = `已經戳了 ${pokes} 下 💗`;
     };
     stage.addEventListener('click', poke);
@@ -776,7 +837,7 @@
     window.addEventListener('pointermove', look, {passive:true});
     window.addEventListener('touchmove', look, {passive:true});
     // 閒置時自己找話題
-    talkT = setInterval(() => { if (document.visibilityState === 'visible') say(pick(POKE_LINES[main])); }, 7000);
+    talkT = setInterval(() => { if (document.visibilityState === 'visible') say(pick(lines)); }, 7000);
     // 背景緩緩上升的泡泡
     for (let i=0;i<10;i++){
       const b = document.createElement('i');
@@ -834,28 +895,51 @@
   function renderResult(){
     const {score, ranked, top} = analyze();
     const main = ranked[0], second = ranked[1];
-    const P = PERSONAS[main], P2 = PERSONAS[second];
+    const P = PERSONAS[main], P2 = PERSONAS[second], B = BLENDS[`${main}-${second}`];
+    const BUD = PERSONAS[P.buddy];
     const nick = S.nick.trim() || '你';
     const aud = S.audience[0] || '上班族';
     const pain = AUD_PAIN[aud] || '';
     const d1 = top[0];
     const plat = platformAdvice(main);
-    const statement = `我是${nick}，一位「${P.title} × ${P2.title}」型的${d1.name}創作者。我用${P.style.split('、')[0]}的方式，幫助${S.audience.join('與')}解決「${pain}」的困擾，讓他們${d1.pillars[0]}更有方向。`;
-    const bio = `${d1.emoji} ${nick}｜${d1.name} × ${P.title}\n💡 帶${aud}搞懂${d1.pillars[0]}、${d1.pillars[1]}\n${P.topping} ${P.slogan}\n👇 ${S.goal[0]==='接案 / 變現' ? '合作 / 諮詢請私訊' : S.goal[0]==='導流到本業' ? '了解更多看連結' : '每週更新，一起成長'}`;
+    const statement = `我是${nick}，一位「${B.title}」型的${d1.name}創作者。我用${P.style.split('、')[0]}的方式，幫助${S.audience.join('與')}解決「${pain}」的困擾，讓他們${d1.pillars[0]}更有方向。`;
+    const bio = `${d1.emoji} ${nick}｜${d1.name} × ${B.title}\n💡 帶${aud}搞懂${d1.pillars[0]}、${d1.pillars[1]}\n${P.topping} ${B.slogan}\n👇 ${S.goal[0]==='接案 / 變現' ? '合作 / 諮詢請私訊' : S.goal[0]==='導流到本業' ? '了解更多看連結' : '每週更新，一起成長'}`;
     const ideaList = ideas(d1, aud);
     const expLine = S.exp.trim() ? `<p class="mini">🌟 你的獨特經歷「${esc(S.exp.trim())}」就是最強的差異化，記得放進自我介紹與第一批內容裡！</p>` : '';
 
     $('#result').innerHTML = `
       <div class="card persona">
-        <span class="tag">${esc(nick)} 的奶茶人格</span>
+        <span class="tag">${esc(nick)} 的專屬特調</span>
         <div class="speech" id="speech" aria-live="polite"></div>
         <div class="mascot-stage" id="mascot" role="button" tabindex="0" aria-label="戳戳你的奶茶">
-          <div class="cup-wrap">${cupSVG(P.color)}</div>
+          <div class="cup-wrap">${cupSVG(P.color, P2.color)}</div>
         </div>
         <div class="poke-hint" id="pokeHint">👆 戳戳我看看</div>
-        <h1 class="name">${esc(P.drink)}・${esc(P.title)}</h1>
-        <div class="slogan">${esc(P.slogan)}</div>
-        <div class="badges">${P.tags.map(t=>`<span class="badge"># ${esc(t)}</span>`).join('')}<span class="badge">副口味：${esc(P2.drink)}</span></div>
+        <h1 class="name">${esc(B.name)}</h1>
+        <div class="blend-title">・${esc(B.title)}・</div>
+        <div class="slogan">${esc(B.slogan)}</div>
+        <div class="badges"><span class="badge">${P.topping} ${esc(P.drink)}家族</span>${P.tags.map(t=>`<span class="badge"># ${esc(t)}</span>`).join('')}<span class="badge">副口味：${esc(P2.drink)}</span></div>
+        <p class="mini" style="margin-top:12px">20 種特調裡，你是其中 1 種 ✨</p>
+      </div>
+
+      <div class="card section">
+        <span class="tag">特調配方</span>
+        <h2>你的特調是怎麼調出來的？</h2>
+        <div class="recipe">
+          <div class="rpart"><span class="rlabel">主口味</span><span class="rcup" style="background:${P.color}"></span><b>${esc(P.drink)}</b><span>${esc(P.title)}：${esc(TRAITS[main].name)}最強</span></div>
+          <div class="rplus">＋</div>
+          <div class="rpart"><span class="rlabel">副口味</span><span class="rcup" style="background:${P2.color}"></span><b>${esc(P2.drink)}</b><span>${esc(P2.title)}：${esc(TRAITS[second].name)}第二</span></div>
+          <div class="rplus">＝</div>
+          <div class="rpart result"><span class="rlabel">你的特調</span><span class="rcup" style="background:linear-gradient(${P.color} 55%, ${P2.color} 55%)"></span><b>${esc(B.name)}</b><span>${esc(B.title)}</span></div>
+        </div>
+        <div class="grid2 section">
+          <div class="perk"><h3>⚡ 你的獨門絕招</h3><p>${esc(B.power)}</p></div>
+          <div class="perk"><h3>🎬 招牌內容企劃</h3><p>${esc(B.idea)}</p></div>
+          <div class="perk"><h3>👀 像這類創作者</h3><p>${esc(P.likes)}</p></div>
+          <div class="perk"><h3>✍️ 第一篇可以這樣發</h3><p>${esc(P.firstPost)}</p></div>
+          <div class="perk"><h3>🤝 最佳合作拍檔</h3><p>${esc(BUD.drink)}・${esc(BUD.title)}<br><span class="mini">找這類創作者合作，剛好補上你的弱項</span></p></div>
+          <div class="perk"><h3>💌 想對你說</h3><p>${esc(P.cheer)}</p></div>
+        </div>
       </div>
 
       <div class="card section">
@@ -868,7 +952,7 @@
           </div>
         </div>
         <div class="grid2 section">
-          <div><h3>💪 你的天賦</h3><ul class="clean">${[...P.strengths, P2.strengths[0]].map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
+          <div><h3>💪 你的天賦</h3><ul class="clean">${[B.power, ...P.strengths, P2.strengths[0]].map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
           <div><h3>🧊 小心這些冰塊</h3><ul class="clean warn">${P.blind.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
         </div>
       </div>
@@ -938,17 +1022,18 @@
         </div>
       </div>`;
 
-    setupMascot(main, nick, P.drink);
-    SHARE = {nick, drink: P.drink, title: P.title, slogan: P.slogan, tags: P.tags, color: P.color,
+    setupMascot(main, nick, B.name, [B.slogan, `我的獨門絕招是：${B.power}！`, `我們來做「${B.idea}」好不好？`]);
+    SHARE = {nick, drink: B.name, title: B.title, slogan: B.slogan, tags: P.tags, color: P.color, color2: P2.color,
              second: P2.drink, top: top.map(d => d.emoji + ' ' + d.name), traits: ranked.slice(0,3).map(k => ({name: TRAITS[k].name, v: score[k]}))};
     if (ENDPOINT) setupLeadCapture({
-      nick, persona: P.title, personaFull: `${P.drink}・${P.title}`, second: `${P2.drink}・${P2.title}`,
+      // persona 維持 5 大家族名稱（後台課程推薦、統計用）；personaFull 帶上特調，且一定包含家族名稱
+      nick, persona: P.title, personaFull: `${B.name}・${B.title}（${P.title}）`, second: `${P2.drink}・${P2.title}`,
       niches: top.map(d => d.name), audience: S.audience, goal: S.goal[0] || '', face: S.face[0] || '', time: S.time[0] || '',
       scores: score, statement,
       report: {
-        slogan: P.slogan,
+        slogan: B.slogan,
         scores: ranked.map(k => ({name: TRAITS[k].name, value: score[k]})),
-        strengths: [...P.strengths, P2.strengths[0]], blindSpots: P.blind,
+        strengths: [`獨門絕招：${B.power}`, `招牌企劃：${B.idea}`, ...P.strengths, P2.strengths[0]], blindSpots: P.blind,
         directions: top.map(d => ({name: d.name, pct: d.pct, pillars: d.pillars, forms: d.forms, monetize: d.monetize})),
         statement, bio, platforms: [...plat.list, `頻率：${plat.freq}`], ideas: ideaList,
       },
@@ -957,9 +1042,10 @@
 
     REPORT_MD = [
       `# ${nick} 的自媒體定位報告`, '',
-      `## 奶茶人格：${P.drink}・${P.title}`, P.slogan, `副口味：${P2.drink}・${P2.title}`, '',
+      `## 專屬特調：${B.name}・${B.title}`, B.slogan, `主口味：${P.drink}・${P.title}`, `副口味：${P2.drink}・${P2.title}`, '',
+      `## 特調配方`, `- 獨門絕招：${B.power}`, `- 招牌內容企劃：${B.idea}`, `- 像這類創作者：${P.likes}`, `- 第一篇可以這樣發：${P.firstPost}`, `- 最佳合作拍檔：${BUD.drink}・${BUD.title}`, `- 想對你說：${P.cheer}`, '',
       `## 五大特質`, ...ranked.map(k=>`- ${TRAITS[k].name}：${score[k]}`), '',
-      `## 天賦`, ...[...P.strengths, P2.strengths[0]].map(s=>`- ${s}`), '',
+      `## 天賦`, ...[B.power, ...P.strengths, P2.strengths[0]].map(s=>`- ${s}`), '',
       `## 注意事項`, ...P.blind.map(s=>`- ${s}`), '',
       `## 適合方向`, ...top.map((d,i)=>`${i+1}. ${d.name}（契合 ${d.pct}%）— 支柱：${d.pillars.join('、')}；形式：${d.forms}；變現：${d.monetize}`), '',
       `## 一句話定位`, statement, '',
@@ -1105,6 +1191,7 @@
     g.fillStyle = '#F4E6D3'; g.strokeStyle = '#8A5E3F'; g.lineWidth = 4; g.lineJoin = 'round';
     g.beginPath(); g.moveTo(26,50); g.lineTo(134,50); g.lineTo(122,174); g.quadraticCurveTo(120,186,108,186); g.lineTo(52,186); g.quadraticCurveTo(40,186,38,174); g.closePath(); g.fill(); g.stroke();
     g.fillStyle = SHARE.color; g.beginPath(); g.moveTo(30,84); g.lineTo(130,84); g.lineTo(122,176); g.quadraticCurveTo(120,186,110,186); g.lineTo(50,186); g.quadraticCurveTo(40,186,38,176); g.closePath(); g.fill();
+    if (SHARE.color2) { g.fillStyle = SHARE.color2; g.beginPath(); g.moveTo(126.5,136); g.lineTo(122,176); g.quadraticCurveTo(120,186,110,186); g.lineTo(50,186); g.quadraticCurveTo(40,186,38,176); g.lineTo(33.5,136); g.quadraticCurveTo(56.75,144,80,136); g.quadraticCurveTo(103.25,128,126.5,136); g.closePath(); g.fill(); }
     g.fillStyle = '#4A3226';
     [[62,106],[98,106]].forEach(([x,y]) => { g.beginPath(); g.ellipse(x,y,7,9,0,0,7); g.fill(); });
     g.fillStyle = '#fff'; [[64,102],[100,102]].forEach(([x,y]) => { g.beginPath(); g.arc(x,y,2.6,0,7); g.fill(); });
