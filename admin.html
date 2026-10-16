@@ -146,7 +146,7 @@
       <button class="tab" data-tab="seq">✉️ 序列信</button>
       <button class="tab" data-tab="products">🎁 課程產品</button>
       <button class="tab" data-tab="settings">⚙️ 寄信設定</button>
-      <button class="tab" data-tab="links">🔗 常用連結</button>
+      <button class="tab" data-tab="links">⋯ 其他</button>
     </nav>
 
     <div data-view="dash"></div>
@@ -275,6 +275,7 @@
     ['📗 Google 後台', [
       ['奶茶定位所後台（試算表）', 'https://docs.google.com/spreadsheets/d/1khb0D554xLibH56P-_vYPlzOeCXsTXOqAA00la6FqB4/edit', '名單、信件、課程的原始資料都存在這裡'],
       ['Apps Script 程式', 'https://script.google.com/d/19hUyFzuDWOfbcdLRpkLqgRuKQm3h4ZOY04Gt19bRhHmB-nsA7KRhJO-j/edit', '後台程式；改完程式要「部署 → 管理部署作業 → 新版本」'],
+      ['後台連線網址', ENDPOINT, '網站和後台溝通用的網址（填在 config.js），不用分享給別人'],
     ]],
     ['✉️ 寄信', [
       ['Resend 寄信紀錄', 'https://resend.com/emails', '查每一封信有沒有寄出、有沒有被退信'],
@@ -289,7 +290,7 @@
   ];
   function loadLinks(){
     loaded.links = true;
-    view('links').innerHTML = LINKS.map(([title, list]) => `
+    view('links').innerHTML = `<div class="card" style="padding:14px 18px"><h3>🔗 這個系統會用到的所有網址</h3><p class="sub" style="margin:4px 0 0">忘記網址時來這裡找就對了，每個都可以直接開啟或複製</p></div>` + LINKS.map(([title, list]) => `
       <div class="card"><h3>${title}</h3>
         ${list.map(([name, url, note]) => `
           <div class="item" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 0">
