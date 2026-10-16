@@ -376,7 +376,8 @@
   let SEQ = [];
   async function loadSeq(){
     loading('seq'); loaded.seq = true;
-    try { SEQ = (await api('getSequence')).rows.map(r => ({...r, '啟用': r['啟用'] === true || String(r['啟用']).toUpperCase() === 'TRUE'})); renderSeq(); }
+    // 試算表預先放了勾選框的空白列也會被讀回來，沒有主旨和內文的就略過
+    try { SEQ = (await api('getSequence')).rows.filter(r => String(r['主旨'] || '').trim() || String(r['內文'] || '').trim()).map(r => ({...r, '啟用': r['啟用'] === true || String(r['啟用']).toUpperCase() === 'TRUE'})); renderSeq(); }
     catch (e) { fail('seq', e); }
   }
   function renderSeq(){
@@ -447,7 +448,8 @@
   async function loadProducts(){
     loading('products'); loaded.products = true;
     const t = v => v === true || String(v).toUpperCase() === 'TRUE';
-    try { PRODS = (await api('getProducts')).rows.map(r => ({...r, '啟用': t(r['啟用']), '在結果頁顯示': t(r['在結果頁顯示'])})); renderProducts(); }
+    // 同上：沒有產品ID和名稱的空白列略過，否則儲存時會出現「每個產品都要有產品ID」
+    try { PRODS = (await api('getProducts')).rows.filter(r => String(r['產品ID'] || '').trim() || String(r['名稱'] || '').trim()).map(r => ({...r, '啟用': t(r['啟用']), '在結果頁顯示': t(r['在結果頁顯示'])})); renderProducts(); }
     catch (e) { fail('products', e); }
   }
   function renderProducts(){
