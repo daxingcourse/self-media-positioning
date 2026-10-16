@@ -95,6 +95,18 @@
   .num{width:80px}
   .savebar{position:sticky;bottom:12px;display:flex;justify-content:flex-end;gap:10px;margin-top:10px}
   .login{max-width:400px;margin:12vh auto 0;text-align:center}
+  .more{position:relative}
+  .more summary{list-style:none;cursor:pointer}
+  .more summary::-webkit-details-marker{display:none}
+  .more-menu{position:absolute;right:0;top:calc(100% + 8px);width:min(380px,calc(100vw - 32px));max-height:70vh;overflow-y:auto;background:var(--card);border:2px solid var(--line);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:8px;z-index:8}
+  @media (max-width:760px){.more-menu{position:fixed;left:16px;right:16px;top:auto;width:auto;margin-top:8px}}
+  .more-head{font-family:'Huninn';color:var(--brown);padding:6px 10px 2px}
+  .more-group{font-size:12px;color:var(--muted);font-weight:700;padding:10px 10px 4px}
+  .more-item{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 10px;border-radius:12px}
+  .more-item:hover{background:var(--foam)}
+  .more-item a{flex:1;min-width:0;text-decoration:none;color:inherit;padding:4px 0}
+  .more-item a b{display:block;font-size:14px}
+  .more-item a span{display:block;font-size:12px;line-height:1.4}
   .pw-wrap{position:relative}
   .pw-wrap .input{padding-right:48px}
   .eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;font-size:18px;padding:4px 8px;border-radius:10px;opacity:.55;line-height:1}
@@ -136,6 +148,10 @@
       <div class="brand">🧋<div>奶茶定位所後台<small>ADMIN</small></div></div>
       <div class="row">
         <a class="btn ghost sm" href="./" target="_blank" rel="noopener" style="text-decoration:none">看網站 ↗</a>
+        <details class="more" id="more">
+          <summary class="btn ghost sm">⋯ 其他 ▾</summary>
+          <div class="more-menu" id="moreMenu"></div>
+        </details>
         <button class="btn ghost sm" id="themeBtn">🌗</button>
         <button class="btn ghost sm" id="logoutBtn">登出</button>
       </div>
@@ -146,7 +162,6 @@
       <button class="tab" data-tab="seq">✉️ 序列信</button>
       <button class="tab" data-tab="products">🎁 課程產品</button>
       <button class="tab" data-tab="settings">⚙️ 寄信設定</button>
-      <button class="tab" data-tab="links">⋯ 其他</button>
     </nav>
 
     <div data-view="dash"></div>
@@ -154,7 +169,6 @@
     <div data-view="seq" hidden></div>
     <div data-view="products" hidden></div>
     <div data-view="settings" hidden></div>
-    <div data-view="links" hidden></div>
   </section>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -219,7 +233,7 @@
 
   // ---------- 分頁 ----------
   const loaded = {};
-  const LOADERS = {dash: loadDash, leads: loadLeads, seq: loadSeq, products: loadProducts, settings: loadSettings, links: loadLinks};
+  const LOADERS = {dash: loadDash, leads: loadLeads, seq: loadSeq, products: loadProducts, settings: loadSettings};
   $('#tabs').addEventListener('click', e => {
     const b = e.target.closest('.tab'); if (!b) return;
     $$('.tab').forEach(t => t.classList.toggle('on', t === b));
@@ -288,23 +302,20 @@
       ['後台設定教學', 'https://github.com/daxingcourse/self-media-positioning/blob/main/backend/%E5%BE%8C%E5%8F%B0%E8%A8%AD%E5%AE%9A%E6%95%99%E5%AD%B8.md', '忘記怎麼設定時可以翻這份'],
     ]],
   ];
-  function loadLinks(){
-    loaded.links = true;
-    view('links').innerHTML = `<div class="card" style="padding:14px 18px"><h3>🔗 這個系統會用到的所有網址</h3><p class="sub" style="margin:4px 0 0">忘記網址時來這裡找就對了，每個都可以直接開啟或複製</p></div>` + LINKS.map(([title, list]) => `
-      <div class="card"><h3>${title}</h3>
-        ${list.map(([name, url, note]) => `
-          <div class="item" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 0">
-            <div style="flex:1;min-width:200px"><b>${esc(name)}</b><div class="muted">${esc(note)}</div></div>
-            <a class="btn ghost sm" href="${esc(url)}" target="_blank" rel="noopener" style="text-decoration:none">開啟 ↗</a>
-            <button class="btn ghost sm" data-copy="${esc(url)}">複製網址</button>
-          </div>`).join('')}
-      </div>`).join('');
-    view('links').onclick = async e => {
-      const b = e.target.closest('[data-copy]'); if (!b) return;
-      try { await navigator.clipboard.writeText(b.dataset.copy); toast('✅ 已複製網址'); }
-      catch (err) { prompt('複製這個網址：', b.dataset.copy); }
-    };
-  }
+  $('#moreMenu').innerHTML = `<div class="more-head">🔗 這個系統會用到的所有網址</div>` + LINKS.map(([title, list]) => `
+    <div class="more-group">${title}</div>
+    ${list.map(([name, url, note]) => `
+      <div class="more-item">
+        <a href="${esc(url)}" target="_blank" rel="noopener"><b>${esc(name)} ↗</b><span class="muted">${esc(note)}</span></a>
+        <button class="btn ghost sm" data-copy="${esc(url)}" title="複製網址">複製</button>
+      </div>`).join('')}`).join('');
+  $('#moreMenu').onclick = async e => {
+    const b = e.target.closest('[data-copy]'); if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.copy); toast('✅ 已複製網址'); }
+    catch (err) { prompt('複製這個網址：', b.dataset.copy); }
+  };
+  document.addEventListener('click', e => { const d = $('#more'); if (d.open && !d.contains(e.target)) d.open = false; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#more').open = false; });
 
   // ---------- 名單 ----------
   let LEADS = [];
