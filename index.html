@@ -217,6 +217,20 @@
   .plan div b{display:block;color:var(--brown);font-size:12px}
   .plan div.on{background:var(--milk);border:2px solid var(--caramel)}
   @media (max-width:520px){.plan{grid-template-columns:repeat(4,1fr)}}
+  .mail-card{background:linear-gradient(135deg,var(--milk),var(--foam))}
+  .mail-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .mail-row .input{flex:1 1 220px;background:var(--card)}
+  .consent{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--muted);margin-top:12px;cursor:pointer}
+  .consent input{margin-top:3px;accent-color:var(--caramel);width:16px;height:16px;flex:none}
+  .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+  .mail-done{display:none;text-align:center;padding:10px 0}
+  .mail-card.sent form{display:none}
+  .mail-card.sent .mail-done{display:block;animation:pop .45s cubic-bezier(.34,1.56,.64,1)}
+  .mail-msg{font-size:13px;margin-top:8px;min-height:1em;color:var(--brown)}
+  .prod{border:2px solid var(--caramel);border-radius:22px;padding:18px;background:var(--cream);margin-top:12px}
+  .prod h3{margin:0 0 4px}
+  .prod .price{color:var(--muted);font-size:13px;margin:4px 0 10px}
+  .prod a.btn{display:inline-block;text-decoration:none}
   .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(120px);background:var(--pearl);color:var(--cream);padding:11px 22px;border-radius:99px;z-index:9;transition:transform .35s cubic-bezier(.34,1.56,.64,1);font-size:14px}
   .toast.show{transform:translateX(-50%) translateY(0)}
   .confetti{position:fixed;inset:0;pointer-events:none;z-index:8}
@@ -467,6 +481,11 @@
   const TRAIT_MAX = TKEYS.reduce((m,k)=>(m[k]=QUIZ.filter(x=>x.o.some(o=>o[1]===k)).length, m),{});
 
   // ---------- state ----------
+  // ====== 後台設定 ======
+  // 把 Google Apps Script 部署後拿到的「網頁應用程式網址」貼在這裡（教學：backend/後台設定教學.md）
+  // 留空的話，寄送報告與課程推薦會自動隱藏。
+  const ENDPOINT = '';
+
   const KEY = 'milktea-positioning-v1';
   const blank = () => ({step:0, nick:'', exp:'', interests:[], audience:[], goal:[], face:[], time:[], answers:[], qi:0});
   let S = blank();
@@ -598,7 +617,7 @@
       const miss = QUIZ.findIndex((_,k)=>S.answers[k]==null);
       S.qi = miss; toast('還有題目沒回答喔～'); go(2); return;
     }
-    go(4);
+    S.sentTo = ''; go(4);
     const msgs = ['正在煮珍珠…','加入你的特質茶底…','倒進鮮奶，攪拌攪拌…','封膜！搖一搖～'];
     let k = 0; $('#brewMsg').textContent = msgs[0];
     const t = setInterval(() => { k++; if (k < msgs.length) $('#brewMsg').textContent = msgs[k]; }, 520);
@@ -839,6 +858,32 @@
         <ol class="ideas">${ideaList.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>
       </div>
 
+      ${ENDPOINT ? `
+      <div class="card section mail-card no-print ${S.sentTo ? 'sent' : ''}" id="mailCard">
+        <span class="tag">免費寄送</span>
+        <h2>📩 把完整報告寄到信箱</h2>
+        <p class="sub" style="margin-bottom:6px">收藏起來慢慢看！接下來幾天，還會收到幾封「把定位變成內容」的實戰小信。</p>
+        <form id="mailForm" novalidate>
+          <div class="mail-row">
+            <input class="input" type="email" id="mailInput" required maxlength="120" placeholder="你的 Email" autocomplete="email" value="${esc(S.email || '')}">
+            <button class="btn" type="submit" id="mailBtn">寄給我 🧋</button>
+          </div>
+          <input class="hp" type="text" id="mailHp" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <label class="consent"><input type="checkbox" id="mailConsent">我同意收到這份報告，以及後續的自媒體經營內容與課程資訊，可以隨時一鍵取消訂閱。</label>
+          <div class="mail-msg" id="mailMsg" role="status"></div>
+        </form>
+        <div class="mail-done">
+          <div style="font-size:46px">💌</div>
+          <h3>報告已寄到 <span id="mailSentTo">${esc(S.sentTo || '')}</span></h3>
+          <p class="mini">沒看到的話，記得找找「促銷內容」或「垃圾郵件」匣喔！<br><a href="#" id="mailAgain" style="color:var(--brown)">換一個信箱寄</a></p>
+        </div>
+      </div>
+      <div class="card section" id="prodCard" hidden>
+        <span class="tag">推薦給你</span>
+        <h2>🎁 適合「${esc(P.title)}」的你</h2>
+        <div id="prodList"></div>
+      </div>` : ''}
+
       <div class="btns no-print">
         <button class="btn ghost" id="retake">↺ 重新測驗</button>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -849,6 +894,18 @@
       </div>`;
 
     setupMascot(main, nick, P.drink);
+    if (ENDPOINT) setupLeadCapture({
+      nick, persona: P.title, personaFull: `${P.drink}・${P.title}`, second: `${P2.drink}・${P2.title}`,
+      niches: top.map(d => d.name), audience: S.audience, goal: S.goal[0] || '', face: S.face[0] || '', time: S.time[0] || '',
+      scores: score, statement,
+      report: {
+        slogan: P.slogan,
+        scores: ranked.map(k => ({name: TRAITS[k].name, value: score[k]})),
+        strengths: [...P.strengths, P2.strengths[0]], blindSpots: P.blind,
+        directions: top.map(d => ({name: d.name, pct: d.pct, pillars: d.pillars, forms: d.forms, monetize: d.monetize})),
+        statement, bio, platforms: [...plat.list, `頻率：${plat.freq}`], ideas: ideaList,
+      },
+    });
     requestAnimationFrame(() => setTimeout(() => $$('.bars .val').forEach(v => v.style.width = v.dataset.w + '%'), 80));
 
     REPORT_MD = [
@@ -878,6 +935,55 @@
     };
     $('#printBtn').onclick = () => window.print();
   }
+  // ---------- 寄送報告＋收名單（送到 Google Apps Script 後台）----------
+  function setupLeadCapture(payload){
+    const card = $('#mailCard'), form = $('#mailForm'), msg = $('#mailMsg'), btn = $('#mailBtn');
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const email = $('#mailInput').value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { msg.textContent = '😢 Email 格式好像怪怪的，再檢查一下～'; return; }
+      if (!$('#mailConsent').checked) { msg.textContent = '☝️ 勾選同意後才能寄給你喔'; return; }
+      btn.disabled = true; btn.textContent = '寄送中…'; msg.textContent = '';
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: {'Content-Type': 'text/plain;charset=utf-8'},   // 用 text/plain 避免跨網域預檢
+          body: JSON.stringify({...payload, email, consent: true, hp: $('#mailHp').value, source: location.href}),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!data.ok) throw new Error(data.error || '寄送失敗，請稍後再試');
+        S.email = email; S.sentTo = email; save();
+        $('#mailSentTo').textContent = email;
+        card.classList.add('sent'); confetti(); toast('報告寄出囉 💌');
+      } catch (err) {
+        msg.textContent = '😢 ' + (err.message || '寄送失敗，請稍後再試');
+      } finally {
+        btn.disabled = false; btn.textContent = '寄給我 🧋';
+      }
+    });
+    $('#mailConsent').addEventListener('change', () => { msg.textContent = ''; });
+    $('#mailAgain').addEventListener('click', e => { e.preventDefault(); S.sentTo = ''; save(); card.classList.remove('sent'); });
+    loadProducts(payload.persona);
+  }
+
+  async function loadProducts(persona){
+    try {
+      const res = await fetch(ENDPOINT + (ENDPOINT.includes('?') ? '&' : '?') + 'action=products');
+      const data = await res.json();
+      const fits = p => String(p.personas || '全部').split(/[,，、\s]+/).some(t => t === '全部' || (t && persona.includes(t)));
+      const list = (data.products || []).filter(fits).slice(0, 2);
+      if (!list.length) return;
+      $('#prodList').innerHTML = list.map(p => `
+        <div class="prod">
+          <h3>${esc(p.name)}</h3>
+          <div>${esc(p.desc)}</div>
+          ${p.price ? `<div class="price">${esc(p.price)}</div>` : '<div style="height:10px"></div>'}
+          ${/^https?:\/\//.test(p.url) ? `<a class="btn" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.cta || '了解更多')} →</a>` : ''}
+        </div>`).join('');
+      $('#prodCard').hidden = false;
+    } catch (e) { /* 後台沒回應就不顯示推薦 */ }
+  }
+
   // ---------- header actions ----------
   $('#resetBtn').addEventListener('click', () => {
     if (!confirm('要清空所有答案重新開始嗎？')) return;
