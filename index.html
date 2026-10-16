@@ -26,6 +26,7 @@
     --matcha:#CFDDB7;
     --taro:#D9C8E6;
     --shadow:0 6px 0 #E2CDB3;
+    --boba:#4A3226;
     --shadow-sm:0 3px 0 #E2CDB3;
   }
   @media (prefers-color-scheme: dark){
@@ -33,14 +34,14 @@
       --cream:#231A15; --foam:#2C211B; --milk:#3A2C23; --tea:#6B4E3A; --caramel:#D9A274;
       --brown:#E6C2A0; --pearl:#F3E3D0; --ink:#F6EBDD; --muted:#BFA48E; --card:#2F241D;
       --line:#4A372B; --pink:#6E4846; --matcha:#4C5A3C; --taro:#54476A;
-      --shadow:0 6px 0 #160F0B; --shadow-sm:0 3px 0 #160F0B;
+      --shadow:0 6px 0 #160F0B; --shadow-sm:0 3px 0 #160F0B; --boba:#1E120C;
     }
   }
   :root[data-theme="dark"]{
     --cream:#231A15; --foam:#2C211B; --milk:#3A2C23; --tea:#6B4E3A; --caramel:#D9A274;
     --brown:#E6C2A0; --pearl:#F3E3D0; --ink:#F6EBDD; --muted:#BFA48E; --card:#2F241D;
     --line:#4A372B; --pink:#6E4846; --matcha:#4C5A3C; --taro:#54476A;
-    --shadow:0 6px 0 #160F0B; --shadow-sm:0 3px 0 #160F0B;
+    --shadow:0 6px 0 #160F0B; --shadow-sm:0 3px 0 #160F0B; --boba:#1E120C;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
@@ -143,7 +144,42 @@
 
   /* result */
   .persona{text-align:center;padding:30px 22px;position:relative;overflow:hidden}
-  .persona .cup{width:120px;margin:0 auto}
+  .persona .cup{width:140px;display:block;margin:0 auto;overflow:visible}
+  .persona .tag{display:table;margin:0 auto 6px}
+  .mascot-stage{position:relative;width:220px;height:200px;margin:4px auto 0;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none}
+  .mascot-stage .cup-wrap{position:absolute;left:50%;bottom:0;width:140px;margin-left:-70px;transform-origin:50% 100%;animation:sway 3.2s ease-in-out infinite}
+  @keyframes sway{0%,100%{transform:rotate(-3deg) translateY(0)}50%{transform:rotate(3deg) translateY(-6px)}}
+  .cup-wrap.boing{animation:boing .6s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes boing{0%{transform:scale(1)}20%{transform:scale(1.18,.8)}45%{transform:scale(.9,1.15) translateY(-26px)}70%{transform:scale(1.05,.95)}100%{transform:scale(1)}}
+  .cup-wrap.spin{animation:spin .9s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+  .cup .straw{transform-origin:98px 70px;transform-box:view-box;animation:straw 2.4s ease-in-out infinite}
+  @keyframes straw{50%{transform:rotate(-6deg)}}
+  .cup .pb{transform-box:fill-box;transform-origin:center;animation:pb 1.8s ease-in-out infinite}
+  .cup .pb:nth-child(2){animation-delay:.25s}.cup .pb:nth-child(3){animation-delay:.5s}.cup .pb:nth-child(4){animation-delay:.75s}.cup .pb:nth-child(5){animation-delay:1s}
+  @keyframes pb{50%{transform:translateY(-6px)}}
+  .cup-wrap.boing .pb{animation:pjump .6s ease-out}
+  @keyframes pjump{40%{transform:translateY(-22px)}}
+  .cup .eyes{transform-box:fill-box;transform-origin:center;animation:blink 3.6s infinite}
+  .cup .pupils{transition:transform .12s ease-out}
+  .cup .blush{transition:opacity .2s;opacity:.75}
+  .cup-wrap.happy .blush{opacity:1}
+  .cup .mouth-o{display:none}
+  .cup-wrap.happy .mouth-smile{display:none}
+  .cup-wrap.happy .mouth-o{display:inline}
+  .cup-wrap.happy .eyes{display:none}
+  .cup .happy-eyes{display:none}
+  .cup-wrap.happy .happy-eyes{display:inline}
+  .speech{position:relative;display:inline-block;max-width:min(320px,90%);margin:6px auto 2px;background:var(--cream);border:2px solid var(--line);border-radius:18px;padding:8px 16px;font-size:14.5px;color:var(--brown);font-family:'Huninn','Noto Sans TC',sans-serif;box-shadow:var(--shadow-sm);min-height:40px}
+  .speech::after{content:'';position:absolute;left:50%;bottom:-9px;width:14px;height:14px;margin-left:-7px;background:var(--cream);border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
+  .speech.pop{animation:jelly .4s}
+  .poke-hint{font-size:12px;color:var(--muted);margin-top:4px;animation:hint 1.6s ease-in-out infinite}
+  @keyframes hint{50%{transform:translateY(-3px);opacity:.6}}
+  .floaty{position:absolute;pointer-events:none;font-size:20px;animation:floaty 1.4s ease-out forwards;z-index:3}
+  @keyframes floaty{0%{opacity:0;transform:translate(0,0) scale(.4)}15%{opacity:1}100%{opacity:0;transform:translate(var(--dx),-110px) scale(1.2) rotate(var(--rot))}}
+  .ambient{position:absolute;bottom:-20px;pointer-events:none;border-radius:50%;opacity:.35;animation:ambient linear infinite}
+  @keyframes ambient{to{transform:translateY(-420px)}}
+  .persona > *:not(.ambient){position:relative;z-index:1}
   .persona .name{font-size:clamp(26px,6vw,34px);margin:6px 0 4px}
   .persona .slogan{color:var(--muted);font-size:15px}
   .badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
@@ -225,11 +261,11 @@
         <ellipse cx="80" cy="44" rx="62" ry="14" fill="var(--caramel)"/>
         <path d="M26 50h108l-12 124a14 14 0 0 1-14 12H52a14 14 0 0 1-14-12z" fill="var(--milk)" stroke="var(--brown)" stroke-width="4" stroke-linejoin="round"/>
         <path d="M30 84h100l-8 92a12 12 0 0 1-12 10H50a12 12 0 0 1-12-10z" fill="var(--tea)"/>
-        <g class="blink"><ellipse cx="62" cy="104" rx="6" ry="8" fill="var(--pearl)"/><ellipse cx="98" cy="104" rx="6" ry="8" fill="var(--pearl)"/></g>
+        <g class="blink"><ellipse cx="62" cy="104" rx="6" ry="8" fill="var(--boba)"/><ellipse cx="98" cy="104" rx="6" ry="8" fill="var(--boba)"/></g>
         <circle cx="64" cy="101" r="2" fill="#fff"/><circle cx="100" cy="101" r="2" fill="#fff"/>
         <ellipse cx="50" cy="118" rx="9" ry="5" fill="var(--pink)" opacity=".8"/><ellipse cx="110" cy="118" rx="9" ry="5" fill="var(--pink)" opacity=".8"/>
-        <path d="M72 116q8 8 16 0" fill="none" stroke="var(--pearl)" stroke-width="4" stroke-linecap="round"/>
-        <g fill="var(--pearl)"><circle cx="58" cy="166" r="8"/><circle cx="78" cy="170" r="8"/><circle cx="98" cy="165" r="8"/><circle cx="68" cy="152" r="8"/><circle cx="90" cy="150" r="8"/></g>
+        <path d="M72 116q8 8 16 0" fill="none" stroke="var(--boba)" stroke-width="4" stroke-linecap="round"/>
+        <g fill="var(--boba)"><circle cx="58" cy="166" r="8"/><circle cx="78" cy="170" r="8"/><circle cx="98" cy="165" r="8"/><circle cx="68" cy="152" r="8"/><circle cx="90" cy="150" r="8"/></g>
       </svg>
       <span class="tag">3 分鐘 · 免登入 · 結果可下載</span>
       <h1>你是哪一杯<br>自媒體奶茶？</h1>
@@ -506,6 +542,7 @@
   const PROG = {1:['第 1 步 · 基底',15], 2:['第 2 步 · 測驗',45], 3:['第 3 步 · 配料',80], 4:['調製中',95], 5:['完成！',100]};
   function go(n){
     S.step = n; save();
+    if (n !== 5 && mascotCleanup) { mascotCleanup(); mascotCleanup = null; }
     $$('.step').forEach(s => s.classList.toggle('on', +s.dataset.step === n));
     const pr = $('#progress');
     pr.hidden = n === 0;
@@ -606,14 +643,89 @@
 
   function cupSVG(color){
     return `<svg class="cup" viewBox="0 0 160 190" aria-hidden="true">
-      <rect x="92" y="2" width="12" height="70" rx="6" fill="var(--pink)" transform="rotate(14 98 37)"/>
+      <rect class="straw" x="92" y="2" width="12" height="70" rx="6" fill="var(--pink)" transform="rotate(14 98 37)"/>
       <ellipse cx="80" cy="44" rx="62" ry="14" fill="var(--caramel)"/>
-      <path d="M26 50h108l-12 124a14 14 0 0 1-14 12H52a14 14 0 0 1-14-12z" fill="var(--milk)" stroke="var(--brown)" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M26 50h108l-12 124a14 14 0 0 1-14 12H52a14 14 0 0 1-14-12z" fill="#F4E6D3" stroke="#8A5E3F" stroke-width="4" stroke-linejoin="round"/>
       <path d="M30 84h100l-8 92a12 12 0 0 1-12 10H50a12 12 0 0 1-12-10z" fill="${color}"/>
-      <ellipse cx="62" cy="106" rx="6" ry="8" fill="var(--pearl)"/><ellipse cx="98" cy="106" rx="6" ry="8" fill="var(--pearl)"/>
-      <ellipse cx="50" cy="120" rx="9" ry="5" fill="var(--pink)"/><ellipse cx="110" cy="120" rx="9" ry="5" fill="var(--pink)"/>
-      <path d="M70 116q10 12 20 0" fill="none" stroke="var(--pearl)" stroke-width="4" stroke-linecap="round"/>
-      <g fill="var(--pearl)"><circle cx="58" cy="166" r="8"/><circle cx="78" cy="170" r="8"/><circle cx="98" cy="165" r="8"/><circle cx="68" cy="152" r="8"/><circle cx="90" cy="150" r="8"/></g></svg>`;
+      <g class="eyes"><ellipse cx="62" cy="106" rx="7" ry="9" fill="var(--boba)"/><ellipse cx="98" cy="106" rx="7" ry="9" fill="var(--boba)"/>
+        <g class="pupils"><circle cx="64" cy="102" r="2.6" fill="#fff"/><circle cx="100" cy="102" r="2.6" fill="#fff"/></g></g>
+      <g class="happy-eyes" fill="none" stroke="var(--boba)" stroke-width="4" stroke-linecap="round"><path d="M55 108q7-10 14 0"/><path d="M91 108q7-10 14 0"/></g>
+      <g class="blush" fill="#F2A7A0"><ellipse cx="48" cy="121" rx="9" ry="5"/><ellipse cx="112" cy="121" rx="9" ry="5"/></g>
+      <path class="mouth-smile" d="M70 117q10 12 20 0" fill="none" stroke="var(--boba)" stroke-width="4" stroke-linecap="round"/>
+      <ellipse class="mouth-o" cx="80" cy="122" rx="6" ry="7" fill="var(--boba)"/>
+      <g fill="var(--boba)"><circle class="pb" cx="58" cy="166" r="8"/><circle class="pb" cx="78" cy="170" r="8"/><circle class="pb" cx="98" cy="165" r="8"/><circle class="pb" cx="68" cy="152" r="8"/><circle class="pb" cx="90" cy="150" r="8"/></g></svg>`;
+  }
+
+  // ---------- 結果頁吉祥物互動：眼睛跟著游標、戳一戳會跳、會說話 ----------
+  const POKE_LINES = {
+    know:['你知道嗎？收藏數就是你的超能力 📚','今天也來整理一份懶人包吧！','複雜的事交給你，大家就放心了～'],
+    talk:['開麥啦！鏡頭最愛你 🎤','你一開口，氣氛就甜了！','今天要不要來拍一支口播？'],
+    create:['這個配色…是你的品味沒錯 🎨','每一格都好好看！','靈感來了就快記下來～'],
+    care:['謝謝你總是這麼溫柔 💗','你的一句話，可能就是別人的光','今天也要記得照顧自己喔'],
+    act:['衝啊！今天要實測什麼？🚀','說做就做，這就是你！','失敗也是很棒的素材喔～'],
+  };
+  const SHY_LINES = ['好癢喔～ >///<','再戳我要冒泡泡了！','嘿嘿，被你發現了 ✨','珍珠要被你戳出來了啦！'];
+  const FLOATIES = ['💗','✨','🫧','⭐','🧋','💛'];
+  let mascotCleanup = null;
+  function setupMascot(main, nick, drink){
+    if (mascotCleanup) mascotCleanup();
+    const stage = $('#mascot'), wrap = $('.cup-wrap', stage), speech = $('#speech'), card = stage.closest('.persona');
+    const pupils = $('.pupils', stage);
+    let pokes = 0, last = -1, talkT, moodT;
+    const say = txt => { speech.textContent = txt; speech.classList.remove('pop'); void speech.offsetWidth; speech.classList.add('pop'); };
+    const pick = arr => { let k; do { k = Math.floor(Math.random()*arr.length); } while (arr.length > 1 && k === last); last = k; return arr[k]; };
+    const burst = (x, y, n) => {
+      for (let i=0;i<n;i++){
+        const f = document.createElement('span');
+        f.className = 'floaty'; f.textContent = FLOATIES[Math.floor(Math.random()*FLOATIES.length)];
+        f.style.left = (x - 10) + 'px'; f.style.top = (y - 10) + 'px';
+        f.style.setProperty('--dx', (Math.random()*120-60) + 'px');
+        f.style.setProperty('--rot', (Math.random()*60-30) + 'deg');
+        f.style.animationDelay = (i*0.06) + 's';
+        stage.appendChild(f); setTimeout(() => f.remove(), 1700);
+      }
+    };
+    say(`嗨 ${nick}！我是你的${drink}～`);
+    const poke = e => {
+      pokes++;
+      const r = stage.getBoundingClientRect();
+      const x = e && e.clientX ? e.clientX - r.left : r.width/2, y = e && e.clientY ? e.clientY - r.top : r.height/2;
+      const cls = pokes % 10 === 0 ? 'spin' : 'boing';
+      wrap.classList.remove('boing','spin'); void wrap.offsetWidth; wrap.classList.add(cls, 'happy');
+      clearTimeout(moodT); moodT = setTimeout(() => wrap.classList.remove('happy'), 900);
+      burst(x, y, cls === 'spin' ? 10 : 4);
+      if (pokes % 10 === 0) say(`哇！你已經戳我 ${pokes} 下了，轉個圈給你看 🌀`);
+      else if (pokes % 4 === 0) say(pick(SHY_LINES));
+      else say(pick(POKE_LINES[main]));
+      $('#pokeHint').textContent = `已經戳了 ${pokes} 下 💗`;
+    };
+    stage.addEventListener('click', poke);
+    stage.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); poke(); } });
+    // 眼睛跟著游標／手指
+    const look = e => {
+      const pt = e.touches ? e.touches[0] : e;
+      const r = wrap.getBoundingClientRect();
+      const dx = pt.clientX - (r.left + r.width/2), dy = pt.clientY - (r.top + r.height*0.55);
+      const d = Math.hypot(dx, dy) || 1, m = Math.min(1, d/220);
+      pupils.style.transform = `translate(${(dx/d*3.2*m).toFixed(2)}px, ${(dy/d*3.2*m).toFixed(2)}px)`;
+    };
+    window.addEventListener('pointermove', look, {passive:true});
+    window.addEventListener('touchmove', look, {passive:true});
+    // 閒置時自己找話題
+    talkT = setInterval(() => { if (document.visibilityState === 'visible') say(pick(POKE_LINES[main])); }, 7000);
+    // 背景緩緩上升的泡泡
+    for (let i=0;i<10;i++){
+      const b = document.createElement('i');
+      const sz = 8 + Math.random()*18;
+      b.className = 'ambient';
+      Object.assign(b.style,{left:Math.random()*100+'%',width:sz+'px',height:sz+'px',background:i%2?'var(--tea)':'var(--pink)',animationDuration:(7+Math.random()*7)+'s',animationDelay:(-Math.random()*10)+'s'});
+      card.prepend(b);
+    }
+    mascotCleanup = () => {
+      clearInterval(talkT); clearTimeout(moodT);
+      window.removeEventListener('pointermove', look);
+      window.removeEventListener('touchmove', look);
+    };
   }
 
   function platformAdvice(main){
@@ -672,7 +784,11 @@
     $('#result').innerHTML = `
       <div class="card persona">
         <span class="tag">${esc(nick)} 的奶茶人格</span>
-        ${cupSVG(P.color)}
+        <div class="speech" id="speech" aria-live="polite"></div>
+        <div class="mascot-stage" id="mascot" role="button" tabindex="0" aria-label="戳戳你的奶茶">
+          <div class="cup-wrap">${cupSVG(P.color)}</div>
+        </div>
+        <div class="poke-hint" id="pokeHint">👆 戳戳我看看</div>
         <h1 class="name">${esc(P.drink)}・${esc(P.title)}</h1>
         <div class="slogan">${esc(P.slogan)}</div>
         <div class="badges">${P.tags.map(t=>`<span class="badge"># ${esc(t)}</span>`).join('')}<span class="badge">副口味：${esc(P2.drink)}</span></div>
@@ -732,6 +848,7 @@
         </div>
       </div>`;
 
+    setupMascot(main, nick, P.drink);
     requestAnimationFrame(() => setTimeout(() => $$('.bars .val').forEach(v => v.style.width = v.dataset.w + '%'), 80));
 
     REPORT_MD = [
