@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>奶茶定位所｜自媒體定位系統</title>
+<meta name="description" content="用一杯奶茶的時間，測出你的創作者特質、奶茶人格與最適合的自媒體方向。">
+<meta name="theme-color" content="#E9D8C4">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23E9D8C4'/%3E%3Cpath d='M18 20h28l-4 34H22z' fill='%23C8A27C'/%3E%3Ccircle cx='27' cy='46' r='3' fill='%234A3226'/%3E%3Ccircle cx='35' cy='48' r='3' fill='%234A3226'/%3E%3Ccircle cx='31' cy='42' r='3' fill='%234A3226'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF5EC;
+    --foam:#F5EADB;
+    --milk:#EBDCC8;
+    --tea:#D9BC9A;
+    --caramel:#C08B5C;
+    --brown:#8A5E3F;
+    --pearl:#4A3226;
+    --ink:#3B2A20;
+    --muted:#8E7766;
+    --card:#FFFDF9;
+    --line:#E6D3BD;
+    --pink:#F2C6C2;
+    --matcha:#CFDDB7;
+    --taro:#D9C8E6;
+    --shadow:0 6px 0 #E2CDB3;
+    --shadow-sm:0 3px 0 #E2CDB3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --cream:#231A15; --foam:#2C211B; --milk:#3A2C23; --tea:#6B4E3A; --caramel:#D9A274;
+      --brown:#E6C2A0; --pearl:#F3E3D0; --ink:#F6EBDD; --muted:#BFA48E; --card:#2F241D;
+      --line:#4A372B; --pink:#6E4846; --matcha:#4C5A3C; --taro:#54476A;
+      --shadow:0 6px 0 #160F0B; --shadow-sm:0 3px 0 #160F0B;
+    }
+  }
+  :root[data-theme="dark"]{
+    --cream:#231A15; --foam:#2C211B; --milk:#3A2C23; --tea:#6B4E3A; --caramel:#D9A274;
+    --brown:#E6C2A0; --pearl:#F3E3D0; --ink:#F6EBDD; --muted:#BFA48E; --card:#2F241D;
+    --line:#4A372B; --pink:#6E4846; --matcha:#4C5A3C; --taro:#54476A;
+    --shadow:0 6px 0 #160F0B; --shadow-sm:0 3px 0 #160F0B;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:'Noto Sans TC',system-ui,sans-serif;
+    background:var(--cream);
+    background-image:radial-gradient(circle at 12% 8%,var(--foam) 0 180px,transparent 181px),
+                     radial-gradient(circle at 92% 30%,var(--foam) 0 140px,transparent 141px);
+    color:var(--ink);
+    min-height:100vh;
+    overflow-x:hidden;
+    line-height:1.65;
+  }
+  .cute{font-family:'Huninn','Noto Sans TC',sans-serif}
+  button{font:inherit;color:inherit;cursor:pointer}
+  input,textarea{font:inherit;color:var(--ink)}
+
+  /* floating pearls */
+  .pearls{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .pearls i{position:absolute;bottom:-40px;border-radius:50%;background:var(--pearl);opacity:.08;animation:rise linear infinite}
+  @keyframes rise{to{transform:translateY(-115vh) translateX(20px)}}
+
+  .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:20px 16px 80px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:10px;font-size:20px;color:var(--brown)}
+  .brand small{display:block;font-size:11px;color:var(--muted);font-family:'Noto Sans TC';letter-spacing:.12em}
+  .icon-btn{border:2px solid var(--line);background:var(--card);border-radius:999px;width:40px;height:40px;display:grid;place-items:center;box-shadow:var(--shadow-sm);transition:transform .15s}
+  .icon-btn:hover{transform:rotate(-12deg) scale(1.06)}
+
+  /* progress cup */
+  .progress{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:10px 16px;background:var(--card);border:2px solid var(--line);border-radius:999px;box-shadow:var(--shadow-sm)}
+  .progress[hidden]{display:none}
+  .progress .bar{flex:1;height:14px;border-radius:99px;background:var(--foam);overflow:hidden;position:relative}
+  .progress .fill{height:100%;width:0;border-radius:99px;background:repeating-linear-gradient(90deg,var(--caramel) 0 14px,var(--tea) 14px 28px);transition:width .5s cubic-bezier(.34,1.56,.64,1);animation:slide 1.2s linear infinite}
+  @keyframes slide{to{background-position:28px 0}}
+  .progress .lbl{font-size:13px;color:var(--muted);white-space:nowrap}
+
+  .card{background:var(--card);border:2px solid var(--line);border-radius:28px;padding:28px 24px;box-shadow:var(--shadow);animation:pop .45s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  .step{display:none}
+  .step.on{display:block}
+  h1,h2,h3{margin:0;font-family:'Huninn','Noto Sans TC',sans-serif;font-weight:400;color:var(--brown);line-height:1.35}
+  h1{font-size:clamp(28px,6vw,40px)}
+  h2{font-size:24px;margin-bottom:6px}
+  h3{font-size:18px;margin-bottom:10px}
+  .sub{color:var(--muted);margin:6px 0 22px;font-size:15px}
+  .tag{display:inline-block;font-size:12px;padding:3px 12px;border-radius:99px;background:var(--milk);color:var(--brown);margin-bottom:10px;letter-spacing:.06em}
+
+  .field{margin-bottom:22px}
+  .field > label{display:block;font-weight:700;margin-bottom:8px;font-size:15px}
+  .field .hint{font-weight:400;color:var(--muted);font-size:13px;margin-left:6px}
+  .input{width:100%;padding:13px 16px;border-radius:18px;border:2px solid var(--line);background:var(--cream);outline:none;transition:border-color .15s, box-shadow .15s}
+  .input:focus{border-color:var(--caramel);box-shadow:0 0 0 4px color-mix(in srgb,var(--caramel) 20%,transparent)}
+  textarea.input{min-height:84px;resize:vertical}
+
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{border:2px solid var(--line);background:var(--cream);border-radius:99px;padding:8px 15px;font-size:14px;transition:transform .15s, background .15s, border-color .15s}
+  .chip:hover{transform:translateY(-2px)}
+  .chip.on{background:var(--caramel);border-color:var(--caramel);color:#fff;animation:jelly .4s}
+  @keyframes jelly{30%{transform:scale(1.12,.9)}60%{transform:scale(.95,1.05)}100%{transform:none}}
+
+  .btns{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:26px;flex-wrap:wrap}
+  .btn{border:2px solid var(--pearl);background:var(--caramel);color:#fff;padding:12px 26px;border-radius:99px;font-weight:700;box-shadow:0 4px 0 var(--pearl);transition:transform .1s, box-shadow .1s;font-size:15px}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--pearl)}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--pearl)}
+  .btn.ghost{background:var(--card);color:var(--brown);border-color:var(--line);box-shadow:var(--shadow-sm)}
+  .btn:disabled{opacity:.45;pointer-events:none}
+  .btn.big{font-size:18px;padding:15px 38px}
+
+  /* hero */
+  .hero{text-align:center;padding:34px 22px}
+  .mascot{width:150px;height:auto;display:block;margin:0 auto 10px;animation:bob 2.6s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-8px) rotate(2deg)}}
+  .mascot .blink{animation:blink 4s infinite;transform-origin:center;transform-box:fill-box}
+  @keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+  .menu{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:26px 0 28px}
+  .menu div{background:var(--foam);border-radius:20px;padding:14px 6px;font-size:13px;color:var(--brown)}
+  .menu b{display:block;font-size:22px;margin-bottom:2px}
+  @media (max-width:520px){.menu{grid-template-columns:repeat(2,1fr)}}
+
+  /* quiz */
+  .q-count{font-size:13px;color:var(--muted)}
+  .q-title{font-size:22px;margin:6px 0 20px}
+  .opts{display:grid;gap:12px}
+  .opt{display:flex;align-items:center;gap:12px;text-align:left;border:2px solid var(--line);background:var(--cream);border-radius:20px;padding:14px 16px;transition:transform .15s, border-color .15s, background .15s;font-size:15px}
+  .opt:hover{transform:translateX(4px);border-color:var(--tea)}
+  .opt .dot{flex:none;width:30px;height:30px;border-radius:50%;background:var(--milk);display:grid;place-items:center;font-weight:700;color:var(--brown);font-size:13px}
+  .opt.on{background:var(--milk);border-color:var(--caramel)}
+  .opt.on .dot{background:var(--pearl);color:var(--cream)}
+  .pearl-row{display:flex;gap:6px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+  .pearl-row span{width:12px;height:12px;border-radius:50%;background:var(--milk);transition:background .2s, transform .2s}
+  .pearl-row span.done{background:var(--pearl)}
+  .pearl-row span.cur{transform:scale(1.4);background:var(--caramel)}
+
+  /* loading */
+  .brewing{text-align:center;padding:60px 20px}
+  .brewing p{color:var(--muted)}
+  .shake{display:inline-block;animation:shake .5s ease-in-out infinite}
+  @keyframes shake{25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+
+  /* result */
+  .persona{text-align:center;padding:30px 22px;position:relative;overflow:hidden}
+  .persona .cup{width:120px;margin:0 auto}
+  .persona .name{font-size:clamp(26px,6vw,34px);margin:6px 0 4px}
+  .persona .slogan{color:var(--muted);font-size:15px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+  .badge{background:var(--foam);color:var(--brown);border-radius:99px;padding:5px 13px;font-size:13px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:620px){.grid2{grid-template-columns:1fr}}
+  .section{margin-top:18px}
+  .radar svg{width:100%;max-width:330px;display:block;margin:0 auto}
+  .bars .row{display:grid;grid-template-columns:72px 1fr 38px;align-items:center;gap:10px;margin:9px 0;font-size:14px}
+  .bars .track{height:12px;background:var(--foam);border-radius:99px;overflow:hidden}
+  .bars .val{height:100%;border-radius:99px;background:var(--caramel);width:0;transition:width 1s cubic-bezier(.34,1.56,.64,1)}
+  .bars .num{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+  ul.clean{list-style:none;padding:0;margin:0}
+  ul.clean li{padding:7px 0 7px 26px;position:relative}
+  ul.clean li::before{content:'';position:absolute;left:4px;top:15px;width:10px;height:10px;border-radius:50%;background:var(--pearl)}
+  ul.clean.warn li::before{background:var(--pink);border:2px solid var(--caramel)}
+  .dir{border:2px solid var(--line);border-radius:22px;padding:18px;margin-bottom:14px;background:var(--cream);position:relative}
+  .dir.top1{border-color:var(--caramel);background:color-mix(in srgb,var(--milk) 55%,var(--cream))}
+  .dir .head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .dir .head h3{margin:0}
+  .match{font-size:13px;font-weight:700;color:#fff;background:var(--caramel);border-radius:99px;padding:3px 12px;white-space:nowrap}
+  .dir p{margin:6px 0;font-size:14.5px}
+  .mini{font-size:13px;color:var(--muted)}
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+  @media (max-width:520px){.pillars{grid-template-columns:1fr}}
+  .pillar{background:var(--foam);border-radius:16px;padding:12px;font-size:13.5px}
+  .pillar b{display:block;color:var(--brown);margin-bottom:4px}
+  .statement{background:var(--pearl);color:var(--cream);border-radius:24px;padding:22px;font-size:17px;line-height:1.8;position:relative}
+  .statement .q{font-family:'Huninn';font-size:44px;line-height:0;position:relative;top:16px;margin-right:4px;opacity:.5}
+  .bio{background:var(--cream);border:2px dashed var(--tea);border-radius:18px;padding:14px 16px;font-size:14.5px;white-space:pre-line;margin-top:10px}
+  .ideas li{padding:8px 0;border-bottom:1px dashed var(--line);font-size:14.5px}
+  .ideas{padding-left:20px;margin:0}
+  .plan{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+  .plan div{background:var(--foam);border-radius:12px;padding:8px 4px;text-align:center;font-size:12px;min-height:66px}
+  .plan div b{display:block;color:var(--brown);font-size:12px}
+  .plan div.on{background:var(--milk);border:2px solid var(--caramel)}
+  @media (max-width:520px){.plan{grid-template-columns:repeat(4,1fr)}}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(120px);background:var(--pearl);color:var(--cream);padding:11px 22px;border-radius:99px;z-index:9;transition:transform .35s cubic-bezier(.34,1.56,.64,1);font-size:14px}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:8}
+  .confetti i{position:absolute;top:-20px;width:12px;height:12px;border-radius:50%;animation:fall 2.4s ease-in forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.2}}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
+  @media print{
+    .pearls,header.top,.progress,.no-print,.toast{display:none!important}
+    body{background:#fff}
+    .card{box-shadow:none;break-inside:avoid}
+  }
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="pearls" id="pearls" aria-hidden="true"></div>
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand cute">
+      <svg width="38" height="38" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="var(--milk)"/><path d="M18 20h28l-4 34H22z" fill="var(--tea)"/><rect x="15" y="16" width="34" height="6" rx="3" fill="var(--caramel)"/><rect x="35" y="5" width="4" height="16" rx="2" fill="var(--pink)" transform="rotate(12 37 13)"/><circle cx="27" cy="47" r="3" fill="var(--pearl)"/><circle cx="35" cy="48" r="3" fill="var(--pearl)"/><circle cx="31" cy="42" r="3" fill="var(--pearl)"/></svg>
+      <div>奶茶定位所<small>SELF-MEDIA POSITIONING</small></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="icon-btn" id="themeBtn" aria-label="切換深淺色" title="切換深淺色">🌗</button>
+      <button class="icon-btn" id="resetBtn" aria-label="重新開始" title="重新開始">↺</button>
+    </div>
+  </header>
+
+  <div class="progress" id="progress" hidden>
+    <span class="lbl" id="progLbl">第 1 步</span>
+    <div class="bar"><div class="fill" id="progFill"></div></div>
+    <span class="lbl" id="progPct">0%</span>
+  </div>
+
+  <!-- STEP 0: welcome -->
+  <section class="step on" data-step="0">
+    <div class="card hero">
+      <svg class="mascot" viewBox="0 0 160 190" aria-hidden="true">
+        <rect x="92" y="2" width="12" height="70" rx="6" fill="var(--pink)" transform="rotate(14 98 37)"/>
+        <ellipse cx="80" cy="44" rx="62" ry="14" fill="var(--caramel)"/>
+        <path d="M26 50h108l-12 124a14 14 0 0 1-14 12H52a14 14 0 0 1-14-12z" fill="var(--milk)" stroke="var(--brown)" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M30 84h100l-8 92a12 12 0 0 1-12 10H50a12 12 0 0 1-12-10z" fill="var(--tea)"/>
+        <g class="blink"><ellipse cx="62" cy="104" rx="6" ry="8" fill="var(--pearl)"/><ellipse cx="98" cy="104" rx="6" ry="8" fill="var(--pearl)"/></g>
+        <circle cx="64" cy="101" r="2" fill="#fff"/><circle cx="100" cy="101" r="2" fill="#fff"/>
+        <ellipse cx="50" cy="118" rx="9" ry="5" fill="var(--pink)" opacity=".8"/><ellipse cx="110" cy="118" rx="9" ry="5" fill="var(--pink)" opacity=".8"/>
+        <path d="M72 116q8 8 16 0" fill="none" stroke="var(--pearl)" stroke-width="4" stroke-linecap="round"/>
+        <g fill="var(--pearl)"><circle cx="58" cy="166" r="8"/><circle cx="78" cy="170" r="8"/><circle cx="98" cy="165" r="8"/><circle cx="68" cy="152" r="8"/><circle cx="90" cy="150" r="8"/></g>
+      </svg>
+      <span class="tag">3 分鐘 · 免登入 · 結果可下載</span>
+      <h1>你是哪一杯<br>自媒體奶茶？</h1>
+      <p class="sub">回答幾個小問題，幫你找出創作者特質、奶茶人格，<br>還有最適合你的內容方向與定位句 ✨</p>
+      <div class="menu">
+        <div><b>🧋</b>認識你的口味</div>
+        <div><b>🫧</b>12 題特質測驗</div>
+        <div><b>🎯</b>受眾與目標</div>
+        <div><b>📜</b>專屬定位報告</div>
+      </div>
+      <button class="btn big" data-go="1">開始調製 →</button>
+    </div>
+  </section>
+
+  <!-- STEP 1: about you -->
+  <section class="step" data-step="1">
+    <div class="card">
+      <span class="tag">STEP 1 · 選擇你的基底</span>
+      <h2>先認識一下你 🧋</h2>
+      <p class="sub">興趣是你的茶底，越真實越好喝。</p>
+      <div class="field">
+        <label for="nick">怎麼稱呼你？<span class="hint">暱稱或想用的帳號名</span></label>
+        <input class="input" id="nick" data-bind="nick" maxlength="20" placeholder="例如：小芋圓">
+      </div>
+      <div class="field">
+        <label>你平常最愛的是？<span class="hint">選 1–5 個</span></label>
+        <div class="chips" data-chips="interests" data-max="5"></div>
+      </div>
+      <div class="field">
+        <label for="exp">有沒有一段經歷或專業，是別人常來問你的？<span class="hint">選填</span></label>
+        <textarea class="input" id="exp" data-bind="exp" maxlength="200" placeholder="例如：當了 5 年護理師、自學日文考過 N1、一年存到 50 萬…"></textarea>
+      </div>
+      <div class="btns">
+        <button class="btn ghost" data-go="0">← 返回</button>
+        <button class="btn" data-go="2" id="next1">下一步 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: quiz -->
+  <section class="step" data-step="2">
+    <div class="card" id="quizCard"></div>
+  </section>
+
+  <!-- STEP 3: audience & goals -->
+  <section class="step" data-step="3">
+    <div class="card">
+      <span class="tag">STEP 3 · 加點配料</span>
+      <h2>你想把奶茶端給誰？🎯</h2>
+      <p class="sub">受眾和目標決定你的甜度與冰塊。</p>
+      <div class="field">
+        <label>最想幫助 / 陪伴的人<span class="hint">選 1–2 個</span></label>
+        <div class="chips" data-chips="audience" data-max="2"></div>
+      </div>
+      <div class="field">
+        <label>做自媒體最主要的目標</label>
+        <div class="chips" data-chips="goal" data-max="1"></div>
+      </div>
+      <div class="field">
+        <label>願意露臉嗎？</label>
+        <div class="chips" data-chips="face" data-max="1"></div>
+      </div>
+      <div class="field">
+        <label>每週能投入多少時間？</label>
+        <div class="chips" data-chips="time" data-max="1"></div>
+      </div>
+      <div class="btns">
+        <button class="btn ghost" data-go="2">← 回測驗</button>
+        <button class="btn" id="brewBtn">搖一搖，出結果！🫧</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4: brewing -->
+  <section class="step" data-step="4">
+    <div class="card brewing">
+      <div style="font-size:64px" class="shake">🧋</div>
+      <h2 id="brewMsg">正在煮珍珠…</h2>
+      <p>分析你的特質與方向中，請稍候</p>
+    </div>
+  </section>
+
+  <!-- STEP 5: result -->
+  <section class="step" data-step="5" id="result"></section>
+
+  <footer>奶茶定位所 · 結果僅存在你的瀏覽器，不會上傳</footer>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  // ---------- data ----------
+  const TRAITS = {
+    know:   {name:'知識力', emoji:'📚'},
+    talk:   {name:'表達力', emoji:'🎤'},
+    create: {name:'美感力', emoji:'🎨'},
+    care:   {name:'共感力', emoji:'💗'},
+    act:    {name:'行動力', emoji:'🚀'},
+  };
+  const TKEYS = Object.keys(TRAITS);
+
+  const PERSONAS = {
+    know: {
+      drink:'伯爵奶茶', title:'知識導師', color:'#C8A27C', topping:'🫖',
+      slogan:'把複雜的事，泡成一杯好入口的知識茶。',
+      tags:['邏輯清楚','乾貨製造機','值得收藏'],
+      strengths:['擅長拆解問題、整理成步驟與框架','內容收藏率高，容易累積長尾流量','可信度強，適合發展課程與顧問'],
+      blind:['容易寫得太硬太長，記得加故事和例子','追求完美導致發文慢，先求有再求好'],
+      style:'教學拆解、懶人包、清單整理、觀念圖解',
+      tone:'條理清楚、像學長姐分享乾貨，多用步驟和例子',
+    },
+    talk: {
+      drink:'黑糖珍珠鮮奶', title:'人氣主持人', color:'#8A5E3F', topping:'🎙️',
+      slogan:'有你在的地方，氣氛就是甜的。',
+      tags:['鏡頭感強','有梗','觀點鮮明'],
+      strengths:['口語自然、有感染力，短影音天生好手','容易建立「看人」的黏著度','適合直播、Podcast、合作業配'],
+      blind:['小心只有娛樂沒有記憶點，要固定主題','情緒起伏大時，給自己一套發文 SOP'],
+      style:'口播短影音、街訪、開箱評論、直播互動',
+      tone:'活潑有梗、口語直接，像朋友聊天',
+    },
+    create: {
+      drink:'芋泥波波', title:'美感創作者', color:'#B79CC9', topping:'🎨',
+      slogan:'每一格畫面，都是你獨特的配方。',
+      tags:['品味好','視覺系','細節控'],
+      strengths:['畫面辨識度高，一眼就認出是你','適合 IG、小紅書等視覺平台','容易接到品牌合作與設計案'],
+      blind:['美而無用會被滑過，記得給「實用理由」','不要等靈感，建立固定模板提高產量'],
+      style:'圖文輪播、美感 Vlog、作品過程、氛圍短片',
+      tone:'有質感、溫柔細膩，重視畫面和美感描述',
+    },
+    care: {
+      drink:'蜂蜜鮮奶茶', title:'療癒陪伴者', color:'#E3B873', topping:'🍯',
+      slogan:'你的溫柔，就是別人今天需要的那一口甜。',
+      tags:['溫暖','好聊天','信任感'],
+      strengths:['能說中受眾心聲，留言互動率高','容易形成社群與忠實粉絲','適合社群經營、陪伴型產品與會員'],
+      blind:['小心情緒勞動，設定回覆界線','需要搭配具體方法，不只是安慰'],
+      style:'心情短文、真實故事、Q&A 解惑、陪伴直播',
+      tone:'溫暖有同理心，先接住情緒再給方法',
+    },
+    act: {
+      drink:'焙茶拿鐵', title:'實驗紀錄家', color:'#9C7A54', topping:'🧪',
+      slogan:'親身試過才敢說，你就是行走的實測報告。',
+      tags:['勇於嘗試','真實','執行力'],
+      strengths:['素材源源不絕，生活就是內容','「我試了 30 天」類內容天生吸睛','真實歷程容易讓人追更'],
+      blind:['記錄≠內容，要幫觀眾整理「所以呢」','嘗試太多會失焦，鎖定 1 個主軸'],
+      style:'挑戰企劃、Vlog 紀錄、前後對比、實測評比',
+      tone:'真實直率、用親身實測說話，帶點冒險感',
+    },
+  };
+
+  const NICHES = [
+    {id:'finance', name:'理財投資', emoji:'💰', w:{know:3,act:2,talk:1}, pillars:['存錢記帳術','投資入門觀念','真實資產紀錄'], forms:'圖文懶人包、數據短影音', monetize:'理財課程、聯盟行銷、電子書'},
+    {id:'career', name:'職場成長', emoji:'💼', w:{know:3,talk:2,care:1}, pillars:['職場技能','溝通與人際','轉職/升遷故事'], forms:'口播短影音、Threads 短文', monetize:'履歷健檢、顧問、線上課'},
+    {id:'beauty', name:'美妝穿搭', emoji:'💄', w:{create:3,talk:2,act:1}, pillars:['實用教學','好物評比','風格靈感'], forms:'Reels 教學、圖文對比', monetize:'業配合作、團購、選品'},
+    {id:'fitness', name:'健身健康', emoji:'🏋️', w:{act:3,know:2,talk:1}, pillars:['居家訓練','飲食觀念','身材紀錄'], forms:'跟練短影音、前後對比', monetize:'線上課表、教練服務、商品聯名'},
+    {id:'food', name:'料理美食', emoji:'🍳', w:{create:2,act:2,care:1}, pillars:['快速食譜','探店評比','餐桌故事'], forms:'俯拍短影音、圖文食譜', monetize:'食譜書、廚具業配、團購'},
+    {id:'travel', name:'旅遊生活', emoji:'✈️', w:{act:3,create:2,talk:1}, pillars:['行程攻略','省錢秘訣','在地小發現'], forms:'Vlog、攻略輪播圖', monetize:'訂房/票券聯盟、旅遊業配'},
+    {id:'parent', name:'親子教養', emoji:'🧸', w:{care:3,know:2,act:1}, pillars:['教養觀念','親子遊戲','育兒日常'], forms:'真實片段短影音、圖文', monetize:'團購、親子課程、社群會員'},
+    {id:'mind', name:'心理療癒', emoji:'🌿', w:{care:3,know:1,talk:1}, pillars:['情緒自救','關係經營','自我成長'], forms:'語錄圖卡、Podcast、短文', monetize:'工作坊、陪伴社群、諮詢'},
+    {id:'tech', name:'科技 AI', emoji:'🤖', w:{know:3,act:2,create:1}, pillars:['工具教學','實測心得','趨勢解讀'], forms:'錄螢幕教學、懶人包', monetize:'線上課、工具聯盟、企業內訓'},
+    {id:'biz', name:'創業行銷', emoji:'📈', w:{know:2,talk:2,act:2}, pillars:['行銷方法','創業歷程','案例拆解'], forms:'口播、案例圖文', monetize:'顧問、課程、社群會員'},
+    {id:'lang', name:'語言學習', emoji:'🗣️', w:{know:2,talk:2,create:1}, pillars:['實用單字句型','學習方法','文化差異'], forms:'情境短劇、單字卡', monetize:'線上課、家教、教材'},
+    {id:'pet', name:'寵物萌寵', emoji:'🐶', w:{care:2,create:2,act:1}, pillars:['萌寵日常','飼養知識','好物推薦'], forms:'萌寵短影音、梗圖', monetize:'寵物用品業配、團購'},
+    {id:'home', name:'居家生活', emoji:'🏠', w:{create:3,act:1,care:1}, pillars:['收納佈置','生活好物','慢生活儀式感'], forms:'氛圍 Vlog、改造前後', monetize:'好物聯盟、家居業配'},
+    {id:'read', name:'閱讀知識', emoji:'📖', w:{know:3,care:1,create:1}, pillars:['好書拆解','觀念應用','讀書方法'], forms:'書摘圖卡、說書短影音', monetize:'讀書會、電子報、聯盟'},
+    {id:'art', name:'手作插畫', emoji:'✏️', w:{create:3,act:1,care:1}, pillars:['作品過程','技巧教學','創作日常'], forms:'縮時影片、作品輪播', monetize:'接案、周邊商品、教學'},
+    {id:'fun', name:'搞笑娛樂', emoji:'🤣', w:{talk:3,create:1,act:1}, pillars:['生活小劇場','時事梗','角色系列'], forms:'短劇、口播梗片', monetize:'業配置入、直播打賞'},
+  ];
+
+  const AUDIENCE = ['學生','社會新鮮人','上班族','新手爸媽','創業者 / 自由工作者','想轉職的人','熟齡族','同好圈朋友'];
+  const AUD_PAIN = {
+    '學生':'想贏在起跑點卻不知從何開始',
+    '社會新鮮人':'剛出社會很迷惘、怕走錯路',
+    '上班族':'忙到沒時間、想讓生活更好',
+    '新手爸媽':'手忙腳亂、需要被理解也需要方法',
+    '創業者 / 自由工作者':'什麼都要自己來、需要實戰經驗',
+    '想轉職的人':'想改變卻害怕風險',
+    '熟齡族':'想跟上變化、活出第二人生',
+    '同好圈朋友':'想找到懂自己的同溫層',
+  };
+  const GOALS = ['接案 / 變現','打造個人品牌','導流到本業','記錄與交朋友'];
+  const FACE = ['可以露臉 😎','只出聲音 🎧','完全不露 🙈'];
+  const TIME = ['3 小時內','3–7 小時','7 小時以上'];
+
+  const QUIZ = [
+    {q:'朋友找你時，最常是為了？', o:[['問問題，請你幫忙分析','know'],['找你聊天、抒發心情','care'],['請你出點子或幫忙修圖','create'],['約你一起去新地方','act']]},
+    {q:'聚會上的你通常是？', o:[['帶動氣氛的那個人','talk'],['默默照顧大家的人','care'],['負責拍照修圖的人','create'],['排行程訂餐廳的人','act']]},
+    {q:'學一樣新東西，你習慣？', o:[['先研讀資料、整理筆記','know'],['直接動手試，錯了再說','act'],['找人邊聊邊學','talk'],['做成好看的筆記圖','create']]},
+    {q:'滑手機時最容易停下來看的是？', o:[['乾貨教學、知識整理','know'],['搞笑有梗的影片','talk'],['質感美照、美片','create'],['真實的心情故事','care']]},
+    {q:'如果要拍影片，你最自在的方式？', o:[['對著鏡頭直接講','talk'],['只拍畫面、配字幕','create'],['錄螢幕講解步驟','know'],['帶著鏡頭記錄日常','act']]},
+    {q:'別人最常稱讚你？', o:[['好會講、很好笑','talk'],['很懂、好專業','know'],['好有品味','create'],['好溫暖、好貼心','care']]},
+    {q:'理想的週末是？', o:[['挑戰沒做過的事','act'],['窩著看書或上課','know'],['逛展覽、市集','create'],['陪重要的人','care']]},
+    {q:'遇到熱門爭議話題，你會？', o:[['大方說出自己的看法','talk'],['查證後整理重點','know'],['先理解各方的感受','care'],['親自試試看再說','act']]},
+    {q:'你的手機相簿裡最多的是？', o:[['資料截圖','know'],['設計靈感、美照','create'],['和朋友的合照自拍','talk'],['各種打卡紀錄','act']]},
+    {q:'做內容最大的動力是？', o:[['幫別人少走彎路','know'],['被看見、有影響力','talk'],['創作本身很快樂','create'],['陪伴同樣處境的人','care']]},
+    {q:'面對失敗，你通常？', o:[['記錄下來，當成素材','act'],['找人聊聊、消化情緒','care'],['冷靜分析原因','know'],['自嘲一下就過了','talk']]},
+    {q:'最讓你開心的留言是？', o:[['「學到了，收藏！」','know'],['「笑死我了 🤣」','talk'],['「好美，想存起來」','create'],['「謝謝你，被療癒了」','care']]},
+  ];
+  const TRAIT_MAX = TKEYS.reduce((m,k)=>(m[k]=QUIZ.filter(x=>x.o.some(o=>o[1]===k)).length, m),{});
+
+  // ---------- state ----------
+  const KEY = 'milktea-positioning-v1';
+  const blank = () => ({step:0, nick:'', exp:'', interests:[], audience:[], goal:[], face:[], time:[], answers:[], qi:0});
+  let S = blank();
+  try { const raw = localStorage.getItem(KEY); if (raw) S = Object.assign(blank(), JSON.parse(raw)); } catch(e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} };
+
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // ---------- decorations ----------
+  const pearls = $('#pearls');
+  for (let i=0;i<16;i++){
+    const p = document.createElement('i');
+    const sz = 10 + Math.random()*22;
+    Object.assign(p.style,{left:Math.random()*100+'%',width:sz+'px',height:sz+'px',animationDuration:(14+Math.random()*16)+'s',animationDelay:(-Math.random()*25)+'s'});
+    pearls.appendChild(p);
+  }
+  function confetti(){
+    const box = $('#confetti'); box.innerHTML='';
+    const cols = ['#4A3226','#C08B5C','#F2C6C2','#D9BC9A','#D9C8E6','#CFDDB7'];
+    for (let i=0;i<60;i++){
+      const c = document.createElement('i');
+      const sz = 6+Math.random()*12;
+      Object.assign(c.style,{left:Math.random()*100+'%',width:sz+'px',height:sz+'px',background:cols[i%cols.length],animationDelay:Math.random()*.6+'s',animationDuration:(1.8+Math.random()*1.4)+'s'});
+      box.appendChild(c);
+    }
+    setTimeout(()=>box.innerHTML='',3600);
+  }
+  function toast(msg){
+    const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'),1800);
+  }
+
+  // ---------- chips & inputs ----------
+  const CHIP_OPTS = {
+    interests: NICHES.map(n => ({v:n.id, l:n.emoji+' '+n.name})),
+    audience: AUDIENCE.map(v => ({v, l:v})),
+    goal: GOALS.map(v => ({v, l:v})),
+    face: FACE.map(v => ({v, l:v})),
+    time: TIME.map(v => ({v, l:v})),
+  };
+  $$('[data-chips]').forEach(box => {
+    const key = box.dataset.chips, max = +box.dataset.max;
+    box.innerHTML = CHIP_OPTS[key].map(o => `<button type="button" class="chip" data-v="${esc(o.v)}">${esc(o.l)}</button>`).join('');
+    box.addEventListener('click', e => {
+      const b = e.target.closest('.chip'); if (!b) return;
+      const v = b.dataset.v, arr = S[key];
+      const i = arr.indexOf(v);
+      if (i >= 0) arr.splice(i,1);
+      else if (max === 1) { arr.length = 0; arr.push(v); }
+      else if (arr.length >= max) { toast(`最多選 ${max} 個喔～`); return; }
+      else arr.push(v);
+      syncChips(); save(); validate();
+    });
+  });
+  function syncChips(){
+    $$('[data-chips]').forEach(box => {
+      const arr = S[box.dataset.chips];
+      $$('.chip', box).forEach(c => c.classList.toggle('on', arr.includes(c.dataset.v)));
+    });
+  }
+  $$('[data-bind]').forEach(el => {
+    el.value = S[el.dataset.bind] || '';
+    el.addEventListener('input', () => { S[el.dataset.bind] = el.value; save(); validate(); });
+  });
+  function validate(){
+    $('#next1').disabled = S.interests.length === 0;
+    $('#brewBtn').disabled = !(S.audience.length && S.goal.length && S.face.length && S.time.length);
+  }
+
+  // ---------- navigation ----------
+  const PROG = {1:['第 1 步 · 基底',15], 2:['第 2 步 · 測驗',45], 3:['第 3 步 · 配料',80], 4:['調製中',95], 5:['完成！',100]};
+  function go(n){
+    S.step = n; save();
+    $$('.step').forEach(s => s.classList.toggle('on', +s.dataset.step === n));
+    const pr = $('#progress');
+    pr.hidden = n === 0;
+    if (PROG[n]){
+      let pct = PROG[n][1];
+      if (n === 2) pct = 15 + Math.round(65 * S.answers.filter(a=>a!=null).length / QUIZ.length);
+      $('#progLbl').textContent = PROG[n][0];
+      $('#progFill').style.width = pct + '%';
+      $('#progPct').textContent = pct + '%';
+    }
+    if (n === 2) renderQuiz();
+    if (n === 5) renderResult();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-go]'); if (b) go(+b.dataset.go);
+  });
+
+  // ---------- quiz ----------
+  function renderQuiz(){
+    const i = Math.min(S.qi, QUIZ.length-1), item = QUIZ[i];
+    const letters = 'ABCD';
+    $('#quizCard').innerHTML = `
+      <span class="tag">STEP 2 · 特質測驗</span>
+      <div class="q-count">第 ${i+1} / ${QUIZ.length} 題 · 憑直覺選就好</div>
+      <h2 class="q-title">${esc(item.q)}</h2>
+      <div class="opts">${item.o.map((o,k)=>`<button type="button" class="opt ${S.answers[i]===k?'on':''}" data-k="${k}"><span class="dot">${letters[k]}</span>${esc(o[0])}</button>`).join('')}</div>
+      <div class="pearl-row" aria-hidden="true">${QUIZ.map((_,k)=>`<span class="${k===i?'cur':(S.answers[k]!=null?'done':'')}"></span>`).join('')}</div>
+      <div class="btns">
+        <button class="btn ghost" id="qPrev">← ${i===0?'上一步':'上一題'}</button>
+        <button class="btn" id="qNext" ${S.answers[i]==null?'disabled':''}>${i===QUIZ.length-1?'完成測驗 →':'下一題 →'}</button>
+      </div>`;
+    const card = $('#quizCard');
+    card.style.animation='none'; void card.offsetWidth; card.style.animation='';
+    $$('.opt', card).forEach(b => b.addEventListener('click', () => {
+      S.answers[i] = +b.dataset.k; save();
+      $$('.opt', card).forEach(x => x.classList.toggle('on', x === b));
+      setTimeout(() => nextQ(), 260);
+    }));
+    $('#qPrev').onclick = () => { if (i === 0) go(1); else { S.qi = i-1; save(); go(2); } };
+    $('#qNext').onclick = nextQ;
+  }
+  function nextQ(){
+    const i = S.qi;
+    if (S.answers[i] == null) return;
+    if (i < QUIZ.length-1){ S.qi = i+1; save(); go(2); }
+    else go(3);
+  }
+
+  // ---------- brewing ----------
+  $('#brewBtn').addEventListener('click', () => {
+    if (S.answers.filter(a=>a!=null).length < QUIZ.length){
+      const miss = QUIZ.findIndex((_,k)=>S.answers[k]==null);
+      S.qi = miss; toast('還有題目沒回答喔～'); go(2); return;
+    }
+    go(4);
+    const msgs = ['正在煮珍珠…','加入你的特質茶底…','倒進鮮奶，攪拌攪拌…','封膜！搖一搖～'];
+    let k = 0; $('#brewMsg').textContent = msgs[0];
+    const t = setInterval(() => { k++; if (k < msgs.length) $('#brewMsg').textContent = msgs[k]; }, 520);
+    setTimeout(() => { clearInterval(t); go(5); confetti(); }, 2200);
+  });
+
+  // ---------- analysis ----------
+  function analyze(){
+    const raw = Object.fromEntries(TKEYS.map(k=>[k,0]));
+    S.answers.forEach((a,i) => { if (a!=null && QUIZ[i]) raw[QUIZ[i].o[a][1]]++; });
+    const score = Object.fromEntries(TKEYS.map(k => [k, Math.round(30 + 70 * raw[k] / TRAIT_MAX[k])]));
+    const ranked = [...TKEYS].sort((a,b) => score[b]-score[a] || raw[b]-raw[a]);
+    const norm = Object.fromEntries(TKEYS.map(k => [k, raw[k]/TRAIT_MAX[k]]));
+    const dirs = NICHES.map(n => {
+      const wsum = Object.values(n.w).reduce((a,b)=>a+b,0);
+      const fit = Object.entries(n.w).reduce((a,[k,w]) => a + w*norm[k], 0) / wsum;
+      const liked = S.interests.includes(n.id);
+      const pct = Math.min(98, Math.round(42 + fit*40 + (liked?18:0)));
+      return {...n, fit, liked, pct};
+    }).sort((a,b) => b.pct-a.pct);
+    // ensure at least one liked niche appears in top 3
+    const top = dirs.slice(0,3);
+    if (!top.some(d=>d.liked)){ const l = dirs.find(d=>d.liked); if (l) top[2] = l; }
+    return {score, ranked, top};
+  }
+
+  function radarSVG(score){
+    const cx=150, cy=140, R=100, n=TKEYS.length;
+    const pt = (i,r) => { const a = -Math.PI/2 + i*2*Math.PI/n; return [cx+r*Math.cos(a), cy+r*Math.sin(a)]; };
+    let rings = '';
+    [0.25,0.5,0.75,1].forEach(f => {
+      rings += `<polygon points="${TKEYS.map((_,i)=>pt(i,R*f).join(',')).join(' ')}" fill="${f===1?'var(--foam)':'none'}" stroke="var(--line)" stroke-width="1.5"/>`;
+    });
+    const axes = TKEYS.map((_,i)=>{const [x,y]=pt(i,R);return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)" stroke-width="1.5"/>`;}).join('');
+    const poly = TKEYS.map((k,i)=>pt(i,R*score[k]/100).join(',')).join(' ');
+    const dots = TKEYS.map((k,i)=>{const [x,y]=pt(i,R*score[k]/100);return `<circle cx="${x}" cy="${y}" r="6" fill="var(--pearl)"/>`;}).join('');
+    const labels = TKEYS.map((k,i)=>{const [x,y]=pt(i,R+24);return `<text x="${x}" y="${y+5}" text-anchor="middle" font-size="13" fill="var(--brown)" font-family="Huninn, sans-serif">${TRAITS[k].emoji} ${TRAITS[k].name}</text>`;}).join('');
+    return `<svg viewBox="0 0 300 285" role="img" aria-label="五大創作者特質雷達圖">${rings}${axes}
+      <polygon points="${poly}" fill="var(--caramel)" fill-opacity=".45" stroke="var(--caramel)" stroke-width="3" stroke-linejoin="round">
+        <animate attributeName="opacity" from="0" to="1" dur=".8s"/></polygon>${dots}${labels}</svg>`;
+  }
+
+  function cupSVG(color){
+    return `<svg class="cup" viewBox="0 0 160 190" aria-hidden="true">
+      <rect x="92" y="2" width="12" height="70" rx="6" fill="var(--pink)" transform="rotate(14 98 37)"/>
+      <ellipse cx="80" cy="44" rx="62" ry="14" fill="var(--caramel)"/>
+      <path d="M26 50h108l-12 124a14 14 0 0 1-14 12H52a14 14 0 0 1-14-12z" fill="var(--milk)" stroke="var(--brown)" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M30 84h100l-8 92a12 12 0 0 1-12 10H50a12 12 0 0 1-12-10z" fill="${color}"/>
+      <ellipse cx="62" cy="106" rx="6" ry="8" fill="var(--pearl)"/><ellipse cx="98" cy="106" rx="6" ry="8" fill="var(--pearl)"/>
+      <ellipse cx="50" cy="120" rx="9" ry="5" fill="var(--pink)"/><ellipse cx="110" cy="120" rx="9" ry="5" fill="var(--pink)"/>
+      <path d="M70 116q10 12 20 0" fill="none" stroke="var(--pearl)" stroke-width="4" stroke-linecap="round"/>
+      <g fill="var(--pearl)"><circle cx="58" cy="166" r="8"/><circle cx="78" cy="170" r="8"/><circle cx="98" cy="165" r="8"/><circle cx="68" cy="152" r="8"/><circle cx="90" cy="150" r="8"/></g></svg>`;
+  }
+
+  function platformAdvice(main){
+    const face = S.face[0] || '', time = S.time[0] || '';
+    const list = [];
+    if (face.startsWith('可以')) list.push(main==='know' ? 'YouTube 中長片 + Shorts 導流' : 'Reels / TikTok 口播短影音');
+    else if (face.startsWith('只出')) list.push('Podcast 或配音短影音（畫面用素材/錄螢幕）');
+    else list.push(main==='create' ? 'IG / 小紅書 圖文輪播' : 'Threads 短文 + IG 圖卡');
+    if (main==='care' || main==='know') list.push('電子報 / LINE 社群，深化信任');
+    if (main==='create') list.push('Pinterest 或作品集網站累積長尾');
+    if (main==='talk') list.push('定期直播，和粉絲即時互動');
+    if (main==='act') list.push('YouTube Vlog 系列，記錄完整歷程');
+    const freq = time.startsWith('3 小時內') ? '每週 2 篇（1 主力 + 1 輕量）' : time.startsWith('3–7') ? '每週 3–4 篇' : '每週 5 篇以上，可加開系列企劃';
+    return {list, freq};
+  }
+
+  function weekPlan(time, pillars){
+    const days = ['一','二','三','四','五','六','日'];
+    const on = time.startsWith('3 小時內') ? [1,4] : time.startsWith('3–7') ? [0,2,4,6] : [0,1,2,3,4,6];
+    let p = 0;
+    return days.map((d,i) => {
+      if (!on.includes(i)) return `<div><b>週${d}</b>休息 ☕</div>`;
+      const label = pillars[p++ % pillars.length];
+      return `<div class="on"><b>週${d}</b>${esc(label)}</div>`;
+    }).join('');
+  }
+
+  function ideas(dir, aud){
+    const [a,b,c] = dir.pillars;
+    return [
+      `${aud}最常踩的 3 個「${a}」地雷`,
+      `我花了 30 天實測${b}，結果出乎意料`,
+      `如果重來一次，我會這樣開始${dir.name}`,
+      `${c}｜一個真實故事告訴你為什麼值得`,
+      `5 分鐘搞懂${a}：給完全新手的懶人包`,
+      `${aud}必收藏的${b}清單（第 1 集）`,
+    ];
+  }
+
+  // ---------- result ----------
+  let REPORT_MD = '';
+  function renderResult(){
+    const {score, ranked, top} = analyze();
+    const main = ranked[0], second = ranked[1];
+    const P = PERSONAS[main], P2 = PERSONAS[second];
+    const nick = S.nick.trim() || '你';
+    const aud = S.audience[0] || '上班族';
+    const pain = AUD_PAIN[aud] || '';
+    const d1 = top[0];
+    const plat = platformAdvice(main);
+    const statement = `我是${nick}，一位「${P.title} × ${P2.title}」型的${d1.name}創作者。我用${P.style.split('、')[0]}的方式，幫助${S.audience.join('與')}解決「${pain}」的困擾，讓他們${d1.pillars[0]}更有方向。`;
+    const bio = `${d1.emoji} ${nick}｜${d1.name} × ${P.title}\n💡 帶${aud}搞懂${d1.pillars[0]}、${d1.pillars[1]}\n${P.topping} ${P.slogan}\n👇 ${S.goal[0]==='接案 / 變現' ? '合作 / 諮詢請私訊' : S.goal[0]==='導流到本業' ? '了解更多看連結' : '每週更新，一起成長'}`;
+    const ideaList = ideas(d1, aud);
+    const expLine = S.exp.trim() ? `<p class="mini">🌟 你的獨特經歷「${esc(S.exp.trim())}」就是最強的差異化，記得放進自我介紹與第一批內容裡！</p>` : '';
+
+    $('#result').innerHTML = `
+      <div class="card persona">
+        <span class="tag">${esc(nick)} 的奶茶人格</span>
+        ${cupSVG(P.color)}
+        <h1 class="name">${esc(P.drink)}・${esc(P.title)}</h1>
+        <div class="slogan">${esc(P.slogan)}</div>
+        <div class="badges">${P.tags.map(t=>`<span class="badge"># ${esc(t)}</span>`).join('')}<span class="badge">副口味：${esc(P2.drink)}</span></div>
+      </div>
+
+      <div class="card section">
+        <span class="tag">特質分析</span>
+        <h2>你的五大創作者特質</h2>
+        <div class="grid2" style="align-items:center">
+          <div class="radar">${radarSVG(score)}</div>
+          <div class="bars">${ranked.map(k=>`<div class="row"><span>${TRAITS[k].emoji} ${TRAITS[k].name}</span><div class="track"><div class="val" data-w="${score[k]}"></div></div><span class="num">${score[k]}</span></div>`).join('')}
+            <p class="mini" style="margin-top:12px">最強的是 <b>${TRAITS[main].name}</b>，其次是 <b>${TRAITS[second].name}</b>。這個組合讓你特別適合「${esc(P.style.split('、')[0])}」搭配「${esc(P2.style.split('、')[0])}」的內容。</p>
+          </div>
+        </div>
+        <div class="grid2 section">
+          <div><h3>💪 你的天賦</h3><ul class="clean">${[...P.strengths, P2.strengths[0]].map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
+          <div><h3>🧊 小心這些冰塊</h3><ul class="clean warn">${P.blind.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <span class="tag">適合方向</span>
+        <h2>最適合你的 3 個賽道</h2>
+        <p class="sub" style="margin-bottom:16px">依照你的特質 + 興趣計算契合度</p>
+        ${top.map((d,i)=>`
+          <div class="dir ${i===0?'top1':''}">
+            <div class="head"><h3>${i===0?'🥇':i===1?'🥈':'🥉'} ${d.emoji} ${esc(d.name)}</h3><span class="match">契合 ${d.pct}%</span></div>
+            <p>${d.liked?'❤️ 你本來就喜歡這個領域，':''}需要的「${Object.keys(d.w).sort((a,b)=>d.w[b]-d.w[a]).slice(0,2).map(k=>TRAITS[k].name).join('＋')}」正好是你的${Object.keys(d.w).some(k=>k===main)?'強項':'潛力'}。</p>
+            <p class="mini">🎬 推薦形式：${esc(d.forms)}　💰 變現方式：${esc(d.monetize)}</p>
+            <div class="pillars">${d.pillars.map((p,k)=>`<div class="pillar"><b>支柱 ${k+1}</b>${esc(p)}</div>`).join('')}</div>
+          </div>`).join('')}
+      </div>
+
+      <div class="card section">
+        <span class="tag">定位配方</span>
+        <h2>你的一句話定位</h2>
+        <div class="statement"><span class="q">“</span>${esc(statement)}</div>
+        ${expLine}
+        <h3 class="section">📝 社群簡介範本</h3>
+        <div class="bio">${esc(bio)}</div>
+        <div class="grid2 section">
+          <div><h3>📱 主力平台</h3><ul class="clean">${plat.list.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div>
+          <div><h3>⏰ 建議頻率</h3><p style="margin:6px 0">${esc(plat.freq)}</p><p class="mini">目標：${esc(S.goal[0]||'')}・${esc(S.face[0]||'')}</p></div>
+        </div>
+        <h3 class="section">🗓️ 一週內容菜單</h3>
+        <div class="plan">${weekPlan(S.time[0]||'', d1.pillars)}</div>
+        <h3 class="section">💡 前 6 篇選題靈感</h3>
+        <ol class="ideas">${ideaList.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>
+      </div>
+
+      <div class="btns no-print">
+        <button class="btn ghost" id="retake">↺ 重新測驗</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn ghost" id="copyBtn">📋 複製報告</button>
+          <button class="btn ghost" id="dlBtn">⬇️ 下載 .md</button>
+          <button class="btn" id="printBtn">🖨️ 列印 / 存 PDF</button>
+        </div>
+      </div>`;
+
+    requestAnimationFrame(() => setTimeout(() => $$('.bars .val').forEach(v => v.style.width = v.dataset.w + '%'), 80));
+
+    REPORT_MD = [
+      `# ${nick} 的自媒體定位報告`, '',
+      `## 奶茶人格：${P.drink}・${P.title}`, P.slogan, `副口味：${P2.drink}・${P2.title}`, '',
+      `## 五大特質`, ...ranked.map(k=>`- ${TRAITS[k].name}：${score[k]}`), '',
+      `## 天賦`, ...[...P.strengths, P2.strengths[0]].map(s=>`- ${s}`), '',
+      `## 注意事項`, ...P.blind.map(s=>`- ${s}`), '',
+      `## 適合方向`, ...top.map((d,i)=>`${i+1}. ${d.name}（契合 ${d.pct}%）— 支柱：${d.pillars.join('、')}；形式：${d.forms}；變現：${d.monetize}`), '',
+      `## 一句話定位`, statement, '',
+      `## 社群簡介`, bio, '',
+      `## 平台與頻率`, ...plat.list.map(s=>`- ${s}`), `- 頻率：${plat.freq}`, '',
+      `## 選題靈感`, ...ideaList.map((t,i)=>`${i+1}. ${t}`),
+    ].join('\n');
+    const reportMd = () => REPORT_MD;
+
+    $('#retake').onclick = () => { S.answers = []; S.qi = 0; save(); go(2); };
+    $('#copyBtn').onclick = async () => {
+      try { await navigator.clipboard.writeText(reportMd()); toast('已複製報告 🧋'); }
+      catch(e){ toast('複製失敗，請改用下載'); }
+    };
+    $('#dlBtn').onclick = () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([reportMd()], {type:'text/markdown;charset=utf-8'}));
+      a.download = `${nick}-自媒體定位報告.md`; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+    };
+    $('#printBtn').onclick = () => window.print();
+  }
+  // ---------- header actions ----------
+  $('#resetBtn').addEventListener('click', () => {
+    if (!confirm('要清空所有答案重新開始嗎？')) return;
+    S = blank(); save();
+    $$('[data-bind]').forEach(el => el.value = '');
+    syncChips(); validate(); go(0);
+  });
+  $('#themeBtn').addEventListener('click', () => {
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem(KEY+'-theme', root.dataset.theme); } catch(e) {}
+  });
+  try { const t = localStorage.getItem(KEY+'-theme'); if (t) document.documentElement.dataset.theme = t; } catch(e) {}
+
+  // ---------- init ----------
+  syncChips(); validate();
+  const resume = S.step === 4 ? 5 : S.step;
+  go(resume === 5 && S.answers.filter(a=>a!=null).length < QUIZ.length ? 0 : resume);
+})();
+</script>
+</body>
+</html>
