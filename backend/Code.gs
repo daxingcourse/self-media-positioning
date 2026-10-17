@@ -30,7 +30,10 @@ const LEAD_HEADERS = [
 ];
 const SEQ_HEADERS = ['順序', '第幾天寄', '主旨', '內文', '啟用'];
 const PRODUCT_HEADERS = ['產品ID', '名稱', '一句話介紹', '價格', '連結', '按鈕文字', '適合人格', '優先序', '啟用', '在結果頁顯示'];
-const SETTING_KEYS = ['寄信方式', '寄件人名稱', '寄件信箱', '回覆信箱', '網站網址', '報告信主旨', '每次最多寄送', '寄送時段開始', '寄送時段結束', '時區'];
+const SETTING_KEYS = ['寄信方式', '寄件人名稱', '寄件信箱', '回覆信箱', '網站網址', '報告信主旨', '每次最多寄送', '寄送時段開始', '寄送時段結束', '時區',
+  'LINE 官方帳號', 'LINE 按鈕', '廣告開關', '廣告代碼', '廣告位置'];
+const SETTING_MAX = { '廣告代碼': 5000 };   // 其他設定最多 300 字
+const SITE_VERSION = 2;                      // 網站用來判斷後台有沒有更新（2＝支援網站設定、30 天內容日曆）
 
 const PERSONA_TITLES = ['知識導師', '人氣主持人', '美感創作者', '療癒陪伴者', '實驗紀錄家'];
 
@@ -155,6 +158,7 @@ function installTrigger_() {
 function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.action === 'products') return json_({ ok: true, products: listProducts_(true) });
+  if (p.action === 'site') return json_(siteConfig_());
   if (p.action === 'unsub') return unsubscribe_(p.c);
   return json_({ ok: true, service: '奶茶定位所' });
 }
@@ -172,6 +176,25 @@ function doPost(e) {
 function json_(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
+
+/* 網站每次打開都會來拿一次：課程推薦、LINE 按鈕、廣告設定（快取 60 秒，後台儲存時會清掉） */
+function siteConfig_() {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get('site');
+  if (hit) return JSON.parse(hit);
+  const s = getSettings_();
+  const out = {
+    ok: true, v: SITE_VERSION,
+    products: listProducts_(true),
+    site: {
+      line: s.lineId, lineOn: s.lineOn,
+      adsOn: s.adsOn && !!s.adCode, adCode: s.adsOn ? s.adCode : '', adSlots: s.adSlots,
+    },
+  };
+  try { cache.put('site', JSON.stringify(out), 60); } catch (e) {}
+  return out;
+}
+function clearSiteCache_() { try { CacheService.getScriptCache().remove('site'); } catch (e) {} }
 
 /* =========================================================
    收集名單：測驗者在結果頁送出 Email
@@ -407,6 +430,7 @@ function sendReport_(lead, rep, settings) {
     <div style="border:2px dashed #D9BC9A;border-radius:14px;padding:12px 14px;white-space:pre-line">${e(rep.bio)}</div>
     ${h('📱 主力平台與頻率')}<ul style="padding-left:20px">${list(rep.platforms)}</ul>
     ${h('💡 前 6 篇選題靈感')}<ol style="padding-left:20px">${list(rep.ideas)}</ol>
+    ${calendarHtml_(rep.calendar)}
     ${product ? h('🎁 推薦給你') + productCard_(product) : ''}
     <p style="margin-top:26px">接下來幾天，我會再寄幾封信給你，教你把這份定位變成真正的內容。記得留意信箱喔！</p>`;
 
@@ -416,6 +440,23 @@ function sendReport_(lead, rep, settings) {
     html: layout_(body, lead, settings),
     unsubUrl: unsubUrl_(lead),
   }, settings);
+}
+
+/* 留 Email 的贈品：依照特調產生的 30 天內容日曆（網站算好送過來，這裡只負責排版） */
+function calendarHtml_(cal) {
+  if (!Array.isArray(cal) || !cal.length) return '';
+  const e = escapeHtml_;
+  const rows = cal.slice(0, 31).map(c => {
+    const rest = !c.title;
+    return `<tr style="background:${rest ? '#FBF5EC' : '#FFFDF9'}">
+      <td style="padding:7px 6px;border-bottom:1px solid #EBDCC8;white-space:nowrap;color:#8A5E3F;font-weight:bold;vertical-align:top">Day ${e(c.day)}</td>
+      <td style="padding:7px 6px;border-bottom:1px solid #EBDCC8;vertical-align:top">${rest
+        ? `<span style="color:#8E7766">☕ ${e(c.note || '休息／回覆留言')}</span>`
+        : `${c.week ? `<span style="font-size:12px;color:#C08B5C">${e(c.week)}</span><br>` : ''}<b>${e(c.title)}</b>${c.format ? `<br><span style="font-size:12px;color:#8E7766">形式：${e(c.format)}</span>` : ''}`}</td></tr>`;
+  }).join('');
+  return `<h3 style="color:#8A5E3F;font-size:17px;margin:26px 0 8px">🎁 你的專屬 30 天內容日曆</h3>
+    <p style="margin:0 0 8px;font-size:13px;color:#8E7766">照著排程發，30 天後你會有一整個月的作品集。建議存到行事曆或印出來貼在桌上！</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;border:2px solid #E6D3BD">${rows}</table>`;
 }
 
 /* =========================================================
@@ -482,6 +523,12 @@ function varsFor_(lead, product, settings) {
   };
 }
 
+function lineUrl_(id) {
+  id = String(id || '').trim();
+  if (/^https?:\/\//.test(id)) return id;
+  return 'https://line.me/R/ti/p/' + encodeURIComponent(id.charAt(0) === '@' ? id : '@' + id);
+}
+
 function fill_(text, vars) {
   return String(text || '').replace(/\{([^{}]+)\}/g, (m, k) => vars[k] !== undefined ? vars[k] : m);
 }
@@ -499,6 +546,7 @@ function layout_(inner, lead, settings) {
     <div style="max-width:560px;margin:0 auto;background:#FFFDF9;border:2px solid #E6D3BD;border-radius:24px;padding:26px 22px">
       ${inner}
       <p style="margin-top:24px">— ${escapeHtml_(settings.senderName)} 🧋</p>
+      ${settings.lineOn && settings.lineId ? `<div style="text-align:center;margin-top:18px"><a href="${escapeHtml_(lineUrl_(settings.lineId))}" style="display:inline-block;background:#06C755;color:#fff;text-decoration:none;padding:10px 22px;border-radius:99px;font-weight:bold">💚 加入 LINE 官方帳號</a></div>` : ''}
     </div>
     <div style="max-width:560px;margin:14px auto 0;text-align:center;font-size:12px;color:#8E7766">
       你會收到這封信，是因為你在奶茶定位所留下 Email 並同意接收內容。<br>
@@ -524,10 +572,14 @@ function handleAdmin_(d) {
     case 'stats': {
       const { rows } = readTable_(ss.getSheetByName(SHEETS.LEADS));
       const weekAgo = Date.now() - 7 * 864e5;
-      const persona = {}, niche = {}, days = {};
+      const persona = {}, niche = {}, days = {}, blend = {}, source = {};
       rows.forEach(r => {
         const t = PERSONA_TITLES.find(p => String(r['奶茶人格']).indexOf(p) >= 0) || '其他';
         persona[t] = (persona[t] || 0) + 1;
+        const b = String(r['奶茶人格'] || '').split('（')[0].trim();
+        if (b) blend[b] = (blend[b] || 0) + 1;
+        const src = String(r['來源'] || '').trim() || '未知';
+        source[src] = (source[src] || 0) + 1;
         if (r['賽道1']) niche[r['賽道1']] = (niche[r['賽道1']] || 0) + 1;
         const ts = r['建立時間'] ? new Date(r['建立時間']) : null;
         if (ts && ts.getTime() >= Date.now() - 14 * 864e5) {
@@ -541,7 +593,7 @@ function handleAdmin_(d) {
         total: rows.length,
         active: count(STATUS.ACTIVE), unsub: count(STATUS.UNSUB), done: count(STATUS.DONE),
         week: rows.filter(r => r['建立時間'] && new Date(r['建立時間']).getTime() >= weekAgo).length,
-        persona, niche, days,
+        persona, niche, days, blend, source,
         mail: mailStatus_(),
       };
     }
@@ -595,6 +647,7 @@ function handleAdmin_(d) {
         };
       });
       writeTable_(ss.getSheetByName(SHEETS.PRODUCTS), PRODUCT_HEADERS, rows);
+      clearSiteCache_();
       return { ok: true };
     }
 
@@ -602,7 +655,7 @@ function handleAdmin_(d) {
       const sh = ss.getSheetByName(SHEETS.SETTINGS);
       const map = {};
       sh.getDataRange().getValues().slice(1).forEach(r => { map[String(r[0]).trim()] = r[1]; });
-      return { ok: true, settings: map, mail: mailStatus_() };
+      return { ok: true, settings: map, mail: mailStatus_(), v: SITE_VERSION };
     }
     case 'saveSettings': {
       const sh = ss.getSheetByName(SHEETS.SETTINGS);
@@ -610,10 +663,11 @@ function handleAdmin_(d) {
       Object.keys(d.settings || {}).forEach(k => {
         if (SETTING_KEYS.indexOf(k) < 0) return;
         const i = values.findIndex(r => String(r[0]).trim() === k);
-        const v = clip_(d.settings[k], 300);
+        const v = clip_(d.settings[k], SETTING_MAX[k] || 300);
         if (i > 0) sh.getRange(i + 1, 2).setValue(v);
-        else sh.appendRow([k, v, '']);
+        else sh.appendRow([k, v, SETTING_NOTES[k] || '']);
       });
+      clearSiteCache_();
       return { ok: true };
     }
     case 'setResendKey': {
@@ -667,7 +721,7 @@ function sendTestToMe() {
 function sendTest_(to, only) {
   const settings = getSettings_();
   const lead = {
-    'Email': to, '暱稱': '測試小粉圓', '奶茶人格': '伯爵奶茶・知識導師', '副口味': '黑糖珍珠鮮奶・人氣主持人',
+    'Email': to, '暱稱': '測試小粉圓', '奶茶人格': '伯爵黑糖珍奶・會講故事的教授（知識導師）', '副口味': '黑糖珍珠鮮奶・人氣主持人',
     '賽道1': '職場成長', '賽道2': '科技 AI', '受眾': '上班族', '定位句': '我是測試小粉圓，一位知識導師型的職場成長創作者。',
     '退訂碼': 'test',
   };
@@ -678,6 +732,12 @@ function sendTest_(to, only) {
       strengths: ['擅長拆解問題、整理成步驟與框架', '內容收藏率高'], blindSpots: ['容易寫得太硬太長'],
       directions: [{ name: '職場成長', pct: 88, pillars: ['職場技能', '溝通與人際', '轉職故事'], forms: '口播短影音', monetize: '線上課' }],
       statement: lead['定位句'], bio: '💼 測試小粉圓｜職場成長 × 知識導師', platforms: ['YouTube 中長片'], ideas: ['上班族最常踩的 3 個地雷'],
+      calendar: [
+        { day: 1, week: '第 1 週・讓大家認識你', title: '自我介紹：我是誰、為什麼開始做職場成長', format: '口播短影音' },
+        { day: 2, note: '休息／回覆留言' },
+        { day: 3, week: '第 1 週・讓大家認識你', title: '上班族最常問的 5 個職場問題', format: '懶人包圖卡' },
+        { day: 4, note: '…（實際信件會依每個人的結果列滿 30 天）' },
+      ],
     }, settings);
   }
   listSequence_().forEach((m, i) => {
@@ -721,6 +781,11 @@ function getSettings_() {
     sendFrom: Number(map['寄送時段開始']) || 9,
     sendTo: Number(map['寄送時段結束']) || 21,
     timezone: String(map['時區'] || 'Asia/Taipei'),
+    lineId: String(map['LINE 官方帳號'] || '').trim(),
+    lineOn: map['LINE 按鈕'] === '' || map['LINE 按鈕'] === undefined ? true : isTrue_(map['LINE 按鈕']),
+    adsOn: isTrue_(map['廣告開關']),
+    adCode: String(map['廣告代碼'] || '').trim(),
+    adSlots: String(map['廣告位置'] || 'result-mid,result-end').split(/[,，\s]+/).filter(Boolean),
   };
 }
 
@@ -751,6 +816,14 @@ const SAMPLE_SETTINGS = [
   ['寄送時段結束', 21, '幾點之前寄完'],
   ['時區', 'Asia/Taipei', ''],
 ];
+
+const SETTING_NOTES = {
+  'LINE 官方帳號': '例如 @764bdtsz，會出現在結果頁與每封信底部',
+  'LINE 按鈕': 'TRUE＝顯示「加入 LINE」按鈕，FALSE＝隱藏',
+  '廣告開關': 'TRUE＝網站顯示 Google AdSense 廣告，FALSE＝關閉',
+  '廣告代碼': '從 AdSense 複製的廣告代碼（建議在網頁後台「🌐 網站設定」貼上）',
+  '廣告位置': 'home＝首頁下方、result-mid＝結果頁中間、result-end＝結果頁最下方，用逗號分隔',
+};
 
 const SAMPLE_SEQUENCE = [
   [1, 1, '{暱稱}，你的「{人格}」天賦，要這樣用',

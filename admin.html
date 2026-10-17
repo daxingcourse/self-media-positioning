@@ -120,6 +120,12 @@
   @keyframes sp{to{transform:rotate(360deg)}}
   .empty{text-align:center;color:var(--muted);padding:30px}
   [hidden]{display:none!important}
+  .linkrow{display:grid;grid-template-columns:120px 1fr auto;gap:8px;align-items:center;margin:6px 0}
+  .linkrow code{font-size:12.5px;background:var(--foam);border-radius:10px;padding:6px 10px;overflow-x:auto;white-space:nowrap}
+  @media (max-width:760px){.linkrow{grid-template-columns:1fr auto}.linkrow b{grid-column:1 / -1}}
+  .steps{margin:6px 0 0;padding-left:20px;font-size:14px}
+  .steps li{margin:4px 0}
+  textarea.code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;min-height:150px}
 </style>
 </head>
 <body>
@@ -162,6 +168,7 @@
       <button class="tab" data-tab="seq">✉️ 序列信</button>
       <button class="tab" data-tab="products">🎁 課程產品</button>
       <button class="tab" data-tab="settings">⚙️ 寄信設定</button>
+      <button class="tab" data-tab="site">🌐 網站設定</button>
     </nav>
 
     <div data-view="dash"></div>
@@ -169,6 +176,7 @@
     <div data-view="seq" hidden></div>
     <div data-view="products" hidden></div>
     <div data-view="settings" hidden></div>
+    <div data-view="site" hidden></div>
   </section>
 </div>
 <div class="toast" id="toast" role="status"></div>
@@ -233,7 +241,7 @@
 
   // ---------- 分頁 ----------
   const loaded = {};
-  const LOADERS = {dash: loadDash, leads: loadLeads, seq: loadSeq, products: loadProducts, settings: loadSettings};
+  const LOADERS = {dash: loadDash, leads: loadLeads, seq: loadSeq, products: loadProducts, settings: loadSettings, site: loadSite};
   $('#tabs').addEventListener('click', e => {
     const b = e.target.closest('.tab'); if (!b) return;
     $$('.tab').forEach(t => t.classList.toggle('on', t === b));
@@ -272,9 +280,40 @@
           <div class="card"><h3>🎯 最多人推薦的賽道</h3>
             ${nicheTop.length ? nicheTop.map(([k,v]) => `<div class="bar"><span>${esc(k)}</span><div class="t"><div class="v" style="width:${v/nmax*100}%"></div></div><span class="n">${v}</span></div>`).join('') : '<p class="muted">還沒有資料</p>'}
           </div>
+          <div class="card"><h3>🧋 20 種特調分布</h3>
+            ${barList(d.blend, 20, '名單裡還沒有特調資料（後台更新後新填的名單才會有）')}
+          </div>
+          <div class="card"><h3>📣 名單從哪裡來</h3>
+            ${barList(d.source, 10, '還沒有資料（後台更新後新填的名單才會有）')}
+          </div>
+        </div>
+        <div class="card"><h3>🔗 專屬追蹤連結</h3>
+          <p class="sub">在不同地方分享不同的連結，上面的「名單從哪裡來」就會分開統計。好友分享的連結會自動記成「好友邀請」。</p>
+          ${TRACK.map(([code, name]) => trackRow(name, code)).join('')}
+          <div class="row" style="margin-top:10px"><input class="input" id="trackCode" placeholder="自訂代號，例如 1024講座" style="flex:1;min-width:180px"><button class="btn ghost sm" id="trackMake">產生連結</button></div>
+          <div id="trackOut"></div>
         </div>`;
+      $('#trackMake').onclick = () => {
+        const c = $('#trackCode').value.trim(); if (!c) return toast('先輸入一個代號');
+        $('#trackOut').innerHTML = trackRow(c, c);
+      };
     } catch (e) { fail('dash', e); }
   }
+  // ---------- 追蹤連結 ----------
+  const SITE_URL = 'https://daxingcourse.github.io/self-media-positioning/';
+  const TRACK = [['ig','Instagram'],['threads','Threads'],['fb','Facebook'],['line','LINE'],['yt','YouTube'],['class','課堂'],['email','電子報']];
+  const trackRow = (name, code) => { const u = SITE_URL + '?src=' + encodeURIComponent(code); return `<div class="linkrow"><b>${esc(name)}</b><code>${esc(u)}</code><button class="btn ghost sm" data-copy="${esc(u)}">複製</button></div>`; };
+  const barList = (obj, n, emptyText) => {
+    const list = Object.entries(obj || {}).sort((a,b) => b[1]-a[1]).slice(0, n);
+    const max = Math.max(1, ...list.map(x => x[1]));
+    return list.length ? list.map(([k,v]) => `<div class="bar" style="grid-template-columns:150px 1fr 40px"><span>${esc(k)}</span><div class="t"><div class="v" style="width:${v/max*100}%"></div></div><span class="n">${v}</span></div>`).join('') : `<p class="muted">${esc(emptyText)}</p>`;
+  };
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-view] [data-copy]'); if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.copy); toast('✅ 已複製連結'); }
+    catch (err) { prompt('複製這個連結：', b.dataset.copy); }
+  });
+
   function mailBanner(m){
     if (m.ready) return `<div class="card" style="padding:12px 16px"><span class="pill ok">● 寄信正常</span> <span class="muted">寄信方式：${m.provider === 'resend' ? 'Resend（' + esc(m.fromEmail) + '）' : 'Gmail'}</span></div>`;
     return `<div class="card" style="padding:12px 16px;border-color:var(--warn)"><span class="pill warn">● 寄信尚未設定完成</span> <span class="muted">到「⚙️ 寄信設定」填寫 Resend 金鑰與寄件信箱，名單才會收到信。</span></div>`;
@@ -338,7 +377,7 @@
           </div>
         </div>
         <div class="table-wrap" style="margin-top:14px;max-height:65vh"><table>
-          <thead><tr><th>建立時間</th><th>Email</th><th>暱稱</th><th>奶茶人格</th><th>賽道</th><th>受眾</th><th>目標</th><th>序列進度</th><th>下次寄送</th><th>狀態</th></tr></thead>
+          <thead><tr><th>建立時間</th><th>Email</th><th>暱稱</th><th>奶茶人格</th><th>賽道</th><th>受眾</th><th>目標</th><th>來源</th><th>序列進度</th><th>下次寄送</th><th>狀態</th></tr></thead>
           <tbody id="lbody"></tbody></table></div>
       </div>`;
     const draw = () => {
@@ -346,9 +385,9 @@
       const list = LEADS.filter(r => (!q || String(r['Email']).toLowerCase().includes(q) || String(r['暱稱']).toLowerCase().includes(q)) && (!f || r['狀態'] === f) && (!p || String(r['奶茶人格']).includes(p)));
       $('#lbody').innerHTML = list.length ? list.map(r => `<tr>
         <td>${fmt(r['建立時間'])}</td><td>${esc(r['Email'])}</td><td>${esc(r['暱稱'])}</td><td>${esc(r['奶茶人格'])}</td>
-        <td>${esc(r['賽道1'])}</td><td>${esc(r['受眾'])}</td><td>${esc(r['目標'])}</td><td>${Number(r['已寄序列'])||0} 封</td><td>${fmt(r['下次寄送'])}</td>
+        <td>${esc(r['賽道1'])}</td><td>${esc(r['受眾'])}</td><td>${esc(r['目標'])}</td><td>${esc(r['來源'] || '')}</td><td>${Number(r['已寄序列'])||0} 封</td><td>${fmt(r['下次寄送'])}</td>
         <td><select data-email="${esc(r['Email'])}">${STATUSES.map(s => `<option ${s === r['狀態'] ? 'selected' : ''}>${s}</option>`).join('')}</select></td></tr>`).join('')
-        : '<tr><td colspan="10" class="empty">沒有符合的名單</td></tr>';
+        : '<tr><td colspan="11" class="empty">沒有符合的名單</td></tr>';
     };
     ['lq','lf','lp'].forEach(id => $('#' + id).addEventListener('input', draw));
     $('#lbody').addEventListener('change', async e => {
@@ -563,6 +602,65 @@
       });
       $('#runQueue').onclick = e => busy(e.currentTarget, async () => { await api('runQueue'); toast('已處理寄信佇列 ✅'); loaded.leads = false; });
     } catch (e) { fail('settings', e); }
+  }
+
+  // ---------- 網站設定：LINE、Google AdSense ----------
+  const AD_SLOTS = [['home','首頁下方'],['result-mid','結果頁中間（賽道推薦後）'],['result-end','結果頁最下方']];
+  async function loadSite(){
+    loading('site'); loaded.site = true;
+    try {
+      const {settings: s, v} = await api('getSettings');
+      const on = (k, def) => s[k] === undefined || s[k] === '' ? def : s[k] === true || String(s[k]).toUpperCase() === 'TRUE';
+      const slots = String(s['廣告位置'] || 'result-mid,result-end').split(/[,，\s]+/);
+      view('site').innerHTML = `
+        ${(v || 0) < 2 ? `<div class="card" style="padding:12px 16px;border-color:var(--warn)"><span class="pill warn">● 後台程式還沒更新</span> <span class="muted">這頁的設定可以先存，但要把新版 Code.gs 貼到 Apps Script 並「部署成新版本」後，網站才會套用。</span></div>` : ''}
+        <div class="card">
+          <h3>💚 LINE 官方帳號</h3>
+          <p class="sub">開啟後，結果頁會出現「加入 LINE 官方帳號」按鈕，每封信底部也會有加入按鈕。</p>
+          <label class="switch"><input type="checkbox" id="lineOn" ${on('LINE 按鈕', true) ? 'checked' : ''}><i></i>顯示 LINE 按鈕</label>
+          <label class="f">LINE ID<span class="h">@ 開頭，例如 @764bdtsz</span></label>
+          <div class="row"><input class="input" id="lineId" value="${esc(s['LINE 官方帳號'] || '@764bdtsz')}" style="flex:1;min-width:180px"><a class="btn ghost sm" id="lineTest" target="_blank" rel="noopener" style="text-decoration:none">測試連結 ↗</a></div>
+        </div>
+        <div class="card">
+          <h3>💰 Google AdSense 廣告</h3>
+          <p class="sub">把 AdSense 給你的廣告代碼貼在下面、打開開關、按儲存，約 1 分鐘後網站就會出現廣告。想暫停時把開關關掉再儲存即可，代碼會保留。</p>
+          <label class="switch"><input type="checkbox" id="adsOn" ${on('廣告開關', false) ? 'checked' : ''}><i></i>在網站顯示廣告</label>
+          <label class="f">廣告代碼<span class="h">從 AdSense「廣告 → 依廣告單元」複製整段（含 &lt;script&gt;），最多 5000 字</span></label>
+          <textarea class="input code" id="adCode" spellcheck="false" placeholder="&lt;script async src=&quot;https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-…&quot; crossorigin=&quot;anonymous&quot;&gt;&lt;/script&gt;
+&lt;ins class=&quot;adsbygoogle&quot; …&gt;&lt;/ins&gt;
+&lt;script&gt;(adsbygoogle = window.adsbygoogle || []).push({});&lt;/script&gt;">${esc(s['廣告代碼'] || '')}</textarea>
+          <label class="f">廣告要放在哪裡<span class="h">可以複選；測驗作答中不會出現廣告，避免影響填答</span></label>
+          <div class="chips" id="adSlots">${AD_SLOTS.map(([k, l]) => `<button type="button" class="chip ${slots.includes(k) ? 'on' : ''}" data-v="${k}">${l}</button>`).join('')}</div>
+          <div class="savebar"><button class="btn" id="saveSite">💾 儲存網站設定</button></div>
+        </div>
+        <div class="card">
+          <h3>📋 第一次申請 AdSense 要做的事</h3>
+          <ol class="steps">
+            <li>到 <a href="https://adsense.google.com" target="_blank" rel="noopener">adsense.google.com</a> 用 Google 帳號申請，「網站」填你的網址。</li>
+            <li>AdSense 只接受<b>你自己擁有的網域</b>：daxingcourse.github.io 是 GitHub 的網域，通常無法通過審核，建議先把測驗網站換成 <b>quiz.daxingcourse.com</b> 這類自己的子網域（可以請 Claude 幫你設定）。</li>
+            <li>AdSense 會給你一組 <code>ca-pub-</code> 開頭的發布商 ID，把它交給 Claude，幫你加上網站驗證碼和 ads.txt。</li>
+            <li>審核通過（通常幾天到 2 週）後，在 AdSense 建立「多媒體廣告」單元，把代碼貼到上面、打開開關。</li>
+            <li>網站已經放好<a href="${SITE_URL}privacy.html" target="_blank" rel="noopener">隱私權政策</a>，這是 AdSense 審核必備的。</li>
+          </ol>
+        </div>`;
+      const syncLine = () => { $('#lineTest').href = 'https://line.me/R/ti/p/' + encodeURIComponent(($('#lineId').value.trim().replace(/^@?/, '@'))); };
+      $('#lineId').addEventListener('input', syncLine); syncLine();
+      $('#adSlots').addEventListener('click', e => { const c = e.target.closest('.chip'); if (c) c.classList.toggle('on'); });
+      $('#saveSite').onclick = e => busy(e.currentTarget, async () => {
+        const code = $('#adCode').value.trim(), adsOn = $('#adsOn').checked;
+        const lineId = $('#lineId').value.trim().replace(/^(?!@|https?:)/, '@');
+        if (adsOn && !code) throw new Error('要先貼上廣告代碼，才能打開廣告');
+        if (code.length > 5000) throw new Error('廣告代碼太長了（最多 5000 字）');
+        if (code && !/adsbygoogle|googlesyndication/.test(code)) { if (!confirm('這段代碼看起來不像 Google AdSense 的代碼，確定要儲存嗎？')) return; }
+        const pos = $$('#adSlots .chip.on').map(c => c.dataset.v);
+        if (adsOn && !pos.length) throw new Error('至少選一個廣告位置');
+        await api('saveSettings', {settings: {
+          'LINE 官方帳號': lineId === '@' ? '' : lineId, 'LINE 按鈕': $('#lineOn').checked ? 'TRUE' : 'FALSE',
+          '廣告開關': adsOn ? 'TRUE' : 'FALSE', '廣告代碼': code, '廣告位置': pos.join(','),
+        }});
+        toast('網站設定已儲存 ✅ 約 1 分鐘後生效');
+      });
+    } catch (e) { fail('site', e); }
   }
 
   // ---------- 啟動 ----------

@@ -6,6 +6,18 @@
 <title>奶茶定位所｜自媒體定位系統</title>
 <meta name="description" content="用一杯奶茶的時間，測出你的創作者特質、奶茶人格與最適合的自媒體方向。">
 <meta name="theme-color" content="#E9D8C4">
+<!-- 分享預覽：貼到 LINE / FB / Threads 時顯示的卡片 -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="奶茶定位所">
+<meta property="og:title" content="你是哪一杯自媒體奶茶？｜奶茶定位所">
+<meta property="og:description" content="3 分鐘測出你的創作者特質、20 種奶茶特調人格，還有最適合你的自媒體方向與定位句 🧋">
+<meta property="og:url" content="https://daxingcourse.github.io/self-media-positioning/">
+<meta property="og:image" content="https://daxingcourse.github.io/self-media-positioning/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://daxingcourse.github.io/self-media-positioning/og.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23E9D8C4'/%3E%3Cpath d='M18 20h28l-4 34H22z' fill='%23C8A27C'/%3E%3Ccircle cx='27' cy='46' r='3' fill='%234A3226'/%3E%3Ccircle cx='35' cy='48' r='3' fill='%234A3226'/%3E%3Ccircle cx='31' cy='42' r='3' fill='%234A3226'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -280,6 +292,52 @@
   .share-veil{position:fixed;inset:0;z-index:6;background:rgba(59,42,32,.18);opacity:0;pointer-events:none;transition:opacity .25s}
   .share-veil.on{opacity:1;pointer-events:auto}
   @media print{.share-fab,.share-veil{display:none!important}}
+  /* ---------- 好友邀請、配對 ---------- */
+  .invite{display:flex;gap:12px;align-items:center;text-align:left;background:var(--foam);border:2px dashed var(--caramel);border-radius:20px;padding:12px 14px;margin:0 0 18px;font-size:14px}
+  .invite .rcup{flex:none}
+  .match-card{background:linear-gradient(135deg,var(--foam),color-mix(in srgb,var(--pink) 45%,var(--foam)))}
+  .duo{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 4px}
+  .duo .who{flex:1 1 0;max-width:200px;text-align:center;background:var(--card);border-radius:18px;padding:12px 6px}
+  .duo .who b{display:block;font-size:14px;margin-top:6px}
+  .duo .who span{display:block;font-size:12px;color:var(--muted)}
+  .duo .heart{font-size:26px;animation:bob 1.6s ease-in-out infinite}
+  .match-pct{text-align:center;font-family:'Huninn',sans-serif;color:var(--caramel);font-size:44px;line-height:1.1;margin-top:8px}
+  .match-pct small{display:block;font-size:14px;color:var(--muted);font-family:'Noto Sans TC',sans-serif}
+  /* ---------- 圖鑑 ---------- */
+  .dex-veil{position:fixed;inset:0;z-index:10;background:rgba(59,42,32,.45);display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow-y:auto}
+  .dex-veil[hidden]{display:none}
+  .dex-box{width:100%;max-width:760px;position:relative}
+  .dex-close{position:absolute;right:16px;top:16px;z-index:2}
+  .dex-progress{height:12px;background:var(--foam);border-radius:99px;overflow:hidden;margin:6px 0 4px}
+  .dex-progress i{display:block;height:100%;background:var(--caramel);border-radius:99px}
+  .dex-fam{margin-top:16px}
+  .dex-fam h3{font-size:16px;margin-bottom:8px}
+  .dex-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media (max-width:560px){.dex-row{grid-template-columns:repeat(2,1fr)}}
+  .dex-cell{background:var(--foam);border-radius:16px;padding:10px 6px;text-align:center;font-size:12.5px;position:relative;min-height:112px}
+  .dex-cell b{display:block;font-size:13.5px;margin-top:6px;color:var(--brown)}
+  .dex-cell span{display:block;color:var(--muted)}
+  .dex-cell.locked{opacity:.55}
+  .dex-cell.locked .rcup{background:var(--line)!important;border-style:dashed}
+  .dex-cell.mine{outline:3px solid var(--caramel);background:var(--milk)}
+  .dex-cell .who{position:absolute;top:-8px;right:-4px;background:var(--pearl);color:var(--cream);border-radius:99px;font-size:11px;padding:1px 8px}
+  /* ---------- 30 天日曆預覽 ---------- */
+  .cal{margin:12px 0 6px;border:2px solid var(--line);border-radius:16px;overflow:hidden;background:var(--card)}
+  .cal div{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:8px 12px;border-bottom:1px dashed var(--line);font-size:14px}
+  .cal div:last-child{border-bottom:0}
+  .cal div b{color:var(--brown)}
+  .cal .blur{filter:blur(4px);user-select:none}
+  .cal .more{display:block;text-align:center;font-size:13px;color:var(--brown);background:var(--foam)}
+  /* ---------- LINE ---------- */
+  .line-card{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .line-card .txt{flex:1 1 240px}
+  .btn.line{background:#06C755;border-color:#05a648;box-shadow:0 4px 0 #04883b;text-decoration:none;display:inline-block}
+  /* ---------- 廣告 ---------- */
+  .ad-slot{margin-top:18px;text-align:center}
+  .ad-slot:empty{display:none}
+  .ad-label{font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:4px}
+  .ad-slot:has(ins.adsbygoogle[data-ad-status="unfilled"]){display:none}
+  @media print{.ad-slot,.dex-veil,.line-card{display:none!important}}
   @media print{
     .pearls,header.top,.progress,.no-print,.toast{display:none!important}
     body{background:#fff}
@@ -313,6 +371,7 @@
   <!-- STEP 0: welcome -->
   <section class="step on" data-step="0">
     <div class="card hero">
+      <div class="invite" id="invite" hidden></div>
       <svg class="mascot" viewBox="0 0 160 190" aria-hidden="true">
         <rect x="92" y="2" width="12" height="70" rx="6" fill="var(--pink)" transform="rotate(14 98 37)"/>
         <ellipse cx="80" cy="44" rx="62" ry="14" fill="var(--caramel)"/>
@@ -334,7 +393,9 @@
         <div><b>📜</b>專屬定位報告</div>
       </div>
       <button class="btn big" data-go="1">開始調製 →</button>
+      <p style="margin:18px 0 0"><button class="btn ghost" data-dex>📖 偷看 20 種特調圖鑑</button></p>
     </div>
+    <div class="ad-slot" data-ad="home"></div>
   </section>
 
   <!-- STEP 1: about you -->
@@ -408,7 +469,14 @@
   <!-- STEP 5: result -->
   <section class="step" data-step="5" id="result"></section>
 
-  <footer>奶茶定位所 · 結果僅存在你的瀏覽器，不會上傳</footer>
+  <footer>奶茶定位所 · 測驗結果只存在你的瀏覽器，你主動填 Email 時才會寄到後台 · <a href="privacy.html" style="color:inherit">隱私權政策</a></footer>
+</div>
+
+<div class="dex-veil" id="dex" hidden role="dialog" aria-modal="true" aria-label="20 種特調圖鑑">
+  <div class="dex-box card">
+    <button class="icon-btn dex-close" id="dexClose" aria-label="關閉">✕</button>
+    <div id="dexBody"></div>
+  </div>
 </div>
 
 <div class="share-veil" id="shareVeil"></div>
@@ -535,6 +603,25 @@
     'act-care':    {name:'焙茶蜂蜜拿鐵', title:'真誠的成長紀錄者', slogan:'不完美也沒關係，真實的路最有力量。', power:'敢分享失敗和脆弱，讓人特別有共鳴', idea:'不修飾的「成長日記」'},
   };
 
+  // 好友配對：兩個人主口味的組合（key 依 know→talk→create→care→act 排序）
+  const PAIRS = {
+    'know-talk':   {name:'知識脫口秀組合', desc:'一個負責有料、一個負責有趣，乾貨也能講到讓人笑出來。', collab:'「一問一答」對談短影音：一個人丟問題，一個人拆解'},
+    'know-create': {name:'圖解知識組合', desc:'一個整理重點、一個做成好看的圖，收藏數會爆表。', collab:'聯名「一張圖看懂 ___」系列：一個寫內容、一個做設計'},
+    'know-care':   {name:'溫暖顧問組合', desc:'一個給方法、一個接住心情，粉絲會覺得被理解又有收穫。', collab:'「讀者來信」Q&A：一個給具體做法，一個先安慰再鼓勵'},
+    'know-act':    {name:'理論實測組合', desc:'一個查資料、一個親自試，說服力直接加倍。', collab:'「書上說 vs 實際做」對照企劃'},
+    'talk-create': {name:'鏡頭風格組合', desc:'一個會講、一個會拍，畫面和口條都是滿分。', collab:'風格開箱短劇：一個主持，一個負責畫面與剪輯'},
+    'talk-care':   {name:'深夜電台組合', desc:'一個帶話題、一個接住大家，聊天就是最好的內容。', collab:'雙人聊天 Podcast 或深夜陪伴直播'},
+    'talk-act':    {name:'挑戰實況組合', desc:'一個敢講、一個敢做，挑戰企劃自帶笑點和話題。', collab:'「我們能不能做到？」雙人挑戰'},
+    'create-care': {name:'療癒美學組合', desc:'一個做出美感、一個寫出溫度，粉絲看了會想存下來。', collab:'心情語錄圖文聯名系列'},
+    'create-act':  {name:'改造實驗組合', desc:'一個動手、一個拍得好看，改造前後超有說服力。', collab:'「改造前 vs 改造後」聯名企劃'},
+    'care-act':    {name:'一起變好組合', desc:'一個陪伴、一個帶頭行動，最適合帶著粉絲一起改變。', collab:'「一起打卡 21 天」雙人陪跑挑戰'},
+  };
+  const SAME_PAIR = {name:'雙倍濃縮組合', desc:'你們是同一個家族！擅長的事很像，一起做會讓這個風格更鮮明。', collab:'同一個主題各自發揮，做「兩種觀點」對照篇'};
+
+  // 來源追蹤：網址加上 ?src=ig 之類的代號，名單就會記錄是從哪裡來
+  const SRC_LABELS = {ig:'Instagram', threads:'Threads', fb:'Facebook', line:'LINE', yt:'YouTube', tiktok:'TikTok', class:'課堂', email:'電子報', friend:'好友邀請', blog:'部落格'};
+  const DEFAULT_LINE = '@764bdtsz';   // 後台「🌐 網站設定」可以改或關掉
+
   const NICHES = [
     {id:'finance', name:'理財投資', emoji:'💰', w:{know:3,act:2,talk:1}, pillars:['存錢記帳術','投資入門觀念','真實資產紀錄'], forms:'圖文懶人包、數據短影音', monetize:'理財課程、聯盟行銷、電子書'},
     {id:'career', name:'職場成長', emoji:'💼', w:{know:3,talk:2,care:1}, pillars:['職場技能','溝通與人際','轉職/升遷故事'], forms:'口播短影音、Threads 短文', monetize:'履歷健檢、顧問、線上課'},
@@ -598,6 +685,162 @@
   const $ = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => [...r.querySelectorAll(s)];
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // ---------- 網址參數：好友邀請（f＝特調、n＝暱稱）、來源（src） ----------
+  (() => {
+    const q = new URLSearchParams(location.search);
+    const f = q.get('f'), n = (q.get('n') || '').trim().slice(0, 20), src = (q.get('src') || '').trim().slice(0, 30);
+    if (f && BLENDS[f]) { S.friend = {key: f, nick: n || '你的朋友'}; addDex(f, 'friend'); }
+    if (!S.src) {
+      if (src) S.src = SRC_LABELS[src.toLowerCase()] || src;
+      else if (f) S.src = SRC_LABELS.friend;
+      else {
+        let host = ''; try { host = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
+        S.src = !host || host === location.hostname ? '直接開啟'
+          : /instagram/.test(host) ? 'Instagram' : /threads/.test(host) ? 'Threads' : /facebook|fb\./.test(host) ? 'Facebook'
+          : /line\./.test(host) ? 'LINE' : /youtube|youtu\.be/.test(host) ? 'YouTube' : /google/.test(host) ? 'Google 搜尋' : host;
+      }
+    }
+    save();
+    // 把參數從網址拿掉，之後分享出去的才是自己的連結
+    if (q.has('f') || q.has('n') || q.has('src')) { try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {} }
+  })();
+
+  // ---------- 特調圖鑑：收集自己和朋友測到的特調 ----------
+  function getDex(){ try { return JSON.parse(localStorage.getItem(KEY + '-dex')) || {}; } catch (e) { return {}; } }
+  function addDex(key, who){
+    const d = getDex();
+    if (who === 'me') Object.keys(d).forEach(k => { if (d[k] === 'me') d[k] = 'past'; });
+    if (d[key] !== 'me') d[key] = who;
+    try { localStorage.setItem(KEY + '-dex', JSON.stringify(d)); } catch (e) {}
+  }
+  function openDex(){
+    const d = getDex(), have = Object.keys(d).filter(k => BLENDS[k]).length;
+    const WHO = {me:'你', past:'你測過', friend:'朋友'};
+    $('#dexBody').innerHTML = `
+      <span class="tag">特調圖鑑</span>
+      <h2>📖 20 種自媒體奶茶特調</h2>
+      <p class="sub" style="margin-bottom:8px">主口味 × 副口味 = 你的專屬特調。自己測、邀朋友測，就能解鎖更多杯！</p>
+      <div class="dex-progress"><i style="width:${have/20*100}%"></i></div>
+      <p class="mini">已收集 <b>${have}</b> / 20 杯</p>
+      ${TKEYS.map(m => `
+        <div class="dex-fam"><h3>${PERSONAS[m].topping} ${esc(PERSONAS[m].drink)}家族・${esc(PERSONAS[m].title)}</h3>
+          <div class="dex-row">${TKEYS.filter(s => s !== m).map(s => {
+            const k = `${m}-${s}`, B = BLENDS[k], who = d[k];
+            const cup = `<span class="rcup" style="background:linear-gradient(${PERSONAS[m].color} 55%, ${PERSONAS[s].color} 55%)"></span>`;
+            return who
+              ? `<div class="dex-cell ${who === 'me' ? 'mine' : ''}">${WHO[who] ? `<span class="who">${WHO[who]}</span>` : ''}${cup}<b>${esc(B.name)}</b><span>${esc(B.title)}</span></div>`
+              : `<div class="dex-cell locked">${cup}<b>？？？</b><span>＋${esc(PERSONAS[s].drink)}</span></div>`;
+          }).join('')}</div>
+        </div>`).join('')}
+      <div class="btns" style="justify-content:center">
+        ${S.step === 5 ? '<button class="btn" id="dexShare">💌 邀朋友來測，解鎖更多</button>' : '<button class="btn" id="dexStart">🧋 我也要測</button>'}
+      </div>`;
+    $('#dex').hidden = false; document.body.style.overflow = 'hidden';
+    const b1 = $('#dexShare'), b2 = $('#dexStart');
+    if (b1) b1.onclick = () => { closeDex(); setFab(true); };
+    if (b2) b2.onclick = () => { closeDex(); go(1); };
+  }
+  function closeDex(){ $('#dex').hidden = true; document.body.style.overflow = ''; }
+  document.addEventListener('click', e => { if (e.target.closest('[data-dex]')) openDex(); });
+  $('#dexClose').onclick = closeDex;
+  $('#dex').addEventListener('click', e => { if (e.target.id === 'dex') closeDex(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#dex').hidden) closeDex(); });
+
+  // ---------- 好友配對 ----------
+  function matchInfo(meKey, frKey){
+    const [m1, s1] = meKey.split('-'), [m2, s2] = frKey.split('-');
+    let pct = 74;
+    pct += m1 !== m2 ? 8 : 10;   // 同家族：默契高，但互補少一點
+    if (s1 === m2) pct += 6;
+    if (s2 === m1) pct += 6;
+    if (PERSONAS[m1].buddy === m2 || PERSONAS[m2].buddy === m1) pct += 5;
+    const pair = m1 === m2 ? SAME_PAIR : PAIRS[[m1, m2].sort((a, b) => TKEYS.indexOf(a) - TKEYS.indexOf(b)).join('-')];
+    if (meKey === frKey) return {pct: 100, name: '撞杯了！完全同款', desc: '你們測出一模一樣的特調，根本是失散多年的雙胞胎奶茶。', collab: pair.collab};
+    return {pct: Math.min(99, pct), ...pair};
+  }
+  function inviteBanner(){
+    const box = $('#invite'), f = S.friend;
+    if (!f || !BLENDS[f.key]) { box.hidden = true; return; }
+    const [m, s] = f.key.split('-'), B = BLENDS[f.key];
+    box.innerHTML = `<span class="rcup" style="background:linear-gradient(${PERSONAS[m].color} 55%, ${PERSONAS[s].color} 55%)"></span>
+      <div>💌 <b>${esc(f.nick)}</b> 是「${esc(B.name)}・${esc(B.title)}」<br><span class="mini">邀你來測，看看你們是什麼組合！</span></div>`;
+    box.hidden = false;
+  }
+
+  // ---------- 留 Email 的贈品：30 天內容日曆 ----------
+  function buildCalendar({B, P, P2, d1, aud, time}){
+    const [a, b, c] = d1.pillars;
+    const on = time.startsWith('3 小時內') ? [0, 3] : time.startsWith('3–7') ? [0, 2, 4, 6] : [0, 1, 2, 3, 4, 6];
+    const WEEKS = [
+      ['第 1 週・讓大家認識你', [`自我介紹：我是誰、為什麼開始做${d1.name}`, P.firstPost, `${aud}最常問我的 5 個「${a}」問題`, `我的招牌企劃第 1 集：${B.idea}`, `我和${d1.name}的故事：從零開始的那一天`, `一張圖告訴你：這個帳號會分享什麼`]],
+      ['第 2 週・給出乾貨價值', [`5 分鐘搞懂${a}：給新手的懶人包`, `${aud}最常踩的 3 個「${b}」地雷`, `招牌企劃第 2 集：${B.idea}`, `我私藏的${b}工具／清單`, `${a}的 3 個步驟，今天就能開始`, `迷思破解：關於${c}，大家都誤會了`]],
+      ['第 3 週・用故事拉近距離', [`我搞砸過的一次${b}經驗，學到了什麼`, `一個真實故事：${c}`, `招牌企劃第 3 集：${B.idea}`, `如果重來一次，我會這樣開始${d1.name}`, `幕後花絮：我怎麼準備一篇內容`, `換個角度聊${a}：${P2.title}的觀點`]],
+      ['第 4 週・互動與累積信任', [`開放提問：你在「${a}」卡在哪？留言我來回`, `留言精選：${aud}最在意的 3 個問題`, `招牌企劃第 4 集：${B.idea}`, `我試了 7 天${b}，結果是…`, `${aud}必收藏的${c}清單`, `投票：下個月你最想看我做什麼？`]],
+    ];
+    const formats = [...P.style.split('、'), P2.style.split('、')[0]];
+    const rests = ['休息日：回覆留言、和粉絲互動', '充電日：看 3 個同類創作者的熱門內容', '準備日：先把下一篇的標題和開頭寫好'];
+    const cal = [];
+    let fi = 0, ri = 0;
+    for (let w = 0; w < 4; w++) {
+      let k = 0;
+      for (let d = 0; d < 7; d++) {
+        const day = w * 7 + d + 1;
+        if (on.includes(d)) cal.push({day, week: WEEKS[w][0], title: WEEKS[w][1][k++ % WEEKS[w][1].length], format: formats[fi++ % formats.length]});
+        else cal.push({day, note: rests[ri++ % rests.length]});
+      }
+    }
+    cal.push({day: 29, week: '第 5 週・收成', title: '30 天回顧：我學到的 3 件事＋數據公開', format: formats[0]});
+    cal.push({day: 30, week: '第 5 週・收成', title: '下個月預告：留言許願你想看的主題', format: formats[1] || formats[0]});
+    return cal;
+  }
+
+  // ---------- 網站設定（後台「🌐 網站設定」）：課程、LINE、廣告 ----------
+  const sitePromise = ENDPOINT
+    ? fetch(ENDPOINT + (ENDPOINT.includes('?') ? '&' : '?') + 'action=site').then(r => r.json()).catch(() => null)
+    : Promise.resolve(null);
+  let SITE = {v: 0, line: DEFAULT_LINE, lineOn: true, adsOn: false, adCode: '', adSlots: []};
+  sitePromise.then(d => {
+    if (d && d.ok && d.site) SITE = {...SITE, ...d.site, v: d.v || 0, line: d.site.line || DEFAULT_LINE};
+    applySite();
+  });
+  function lineUrl(id){
+    id = String(id || '').trim();
+    if (/^https?:\/\//.test(id)) return id;
+    return 'https://line.me/R/ti/p/' + encodeURIComponent(id.startsWith('@') ? id : '@' + id);
+  }
+  function applySite(){
+    const lc = $('#lineCard');
+    if (lc) { lc.hidden = !(SITE.lineOn && SITE.line); const a = $('a', lc); if (a) a.href = lineUrl(SITE.line); }
+    const cal = $('#calWrap');
+    if (cal) {
+      cal.hidden = SITE.v < 2;
+      if (SITE.v >= 2) { $('#mailTitle').textContent = '🎁 免費領取：你的專屬 30 天內容日曆'; $('#mailSub').textContent = '依照你的特調排好一整個月的發文計畫，連同完整定位報告一起寄到你的信箱。'; $('#mailTag').textContent = '免費領取'; }
+    }
+    fillAds();
+  }
+  // 廣告：把後台貼的 AdSense 代碼放進看得到的廣告位置（看不到的位置等切換畫面後再放，避免寬度 0 出錯）
+  const loadedAdScripts = new Set();
+  function fillAds(){
+    if (!SITE.adsOn || !SITE.adCode) return;
+    $$('.ad-slot[data-ad]').forEach(slot => {
+      if (slot.dataset.filled || !SITE.adSlots.includes(slot.dataset.ad) || !slot.closest('.step.on')) return;
+      slot.dataset.filled = '1';
+      slot.innerHTML = '<div class="ad-label">廣告</div>';
+      const tpl = document.createElement('template');
+      tpl.innerHTML = SITE.adCode;
+      [...tpl.content.childNodes].forEach(node => {
+        if (node.nodeName === 'SCRIPT') {
+          if (node.src && loadedAdScripts.has(node.src)) return;
+          const s = document.createElement('script');
+          [...node.attributes].forEach(at => s.setAttribute(at.name, at.value));
+          s.text = node.textContent;
+          if (node.src) loadedAdScripts.add(node.src);
+          slot.appendChild(s);
+        } else slot.appendChild(node.cloneNode(true));
+      });
+    });
+  }
 
   // ---------- decorations ----------
   const pearls = $('#pearls');
@@ -678,6 +921,8 @@
     }
     if (n === 2) renderQuiz();
     if (n === 5) renderResult();
+    if (n === 0) inviteBanner();
+    fillAds();
     window.scrollTo({top:0, behavior:'smooth'});
   }
   document.addEventListener('click', e => {
@@ -905,6 +1150,13 @@
     const statement = `我是${nick}，一位「${B.title}」型的${d1.name}創作者。我用${P.style.split('、')[0]}的方式，幫助${S.audience.join('與')}解決「${pain}」的困擾，讓他們${d1.pillars[0]}更有方向。`;
     const bio = `${d1.emoji} ${nick}｜${d1.name} × ${B.title}\n💡 帶${aud}搞懂${d1.pillars[0]}、${d1.pillars[1]}\n${P.topping} ${B.slogan}\n👇 ${S.goal[0]==='接案 / 變現' ? '合作 / 諮詢請私訊' : S.goal[0]==='導流到本業' ? '了解更多看連結' : '每週更新，一起成長'}`;
     const ideaList = ideas(d1, aud);
+    const myKey = `${main}-${second}`;
+    addDex(myKey, 'me');
+    const cal = buildCalendar({B, P, P2, d1, aud, time: S.time[0] || ''});
+    const calPosts = cal.filter(c => c.title);
+    const FR = S.friend && BLENDS[S.friend.key] ? S.friend : null;
+    const M = FR ? matchInfo(myKey, FR.key) : null;
+    const cupOf = k => { const [a, b] = k.split('-'); return `<span class="rcup" style="background:linear-gradient(${PERSONAS[a].color} 55%, ${PERSONAS[b].color} 55%)"></span>`; };
     const expLine = S.exp.trim() ? `<p class="mini">🌟 你的獨特經歷「${esc(S.exp.trim())}」就是最強的差異化，記得放進自我介紹與第一批內容裡！</p>` : '';
 
     $('#result').innerHTML = `
@@ -920,7 +1172,23 @@
         <div class="slogan">${esc(B.slogan)}</div>
         <div class="badges"><span class="badge">${P.topping} ${esc(P.drink)}家族</span>${P.tags.map(t=>`<span class="badge"># ${esc(t)}</span>`).join('')}<span class="badge">副口味：${esc(P2.drink)}</span></div>
         <p class="mini" style="margin-top:12px">20 種特調裡，你是其中 1 種 ✨</p>
+        <button class="btn ghost" data-dex style="margin-top:4px">📖 看 20 種特調圖鑑</button>
       </div>
+      ${M ? `
+      <div class="card section match-card">
+        <span class="tag">好友配對</span>
+        <h2>💞 你和 ${esc(FR.nick)} 的奶茶配對</h2>
+        <div class="duo">
+          <div class="who">${cupOf(myKey)}<b>${esc(B.name)}</b><span>${esc(nick)}</span></div>
+          <div class="heart">💗</div>
+          <div class="who">${cupOf(FR.key)}<b>${esc(BLENDS[FR.key].name)}</b><span>${esc(FR.nick)}</span></div>
+        </div>
+        <div class="match-pct">${M.pct}%<small>合作契合度</small></div>
+        <h3 style="text-align:center;margin-top:10px">「${esc(M.name)}」</h3>
+        <p style="text-align:center;margin:0 0 12px">${esc(M.desc)}</p>
+        <div class="perk"><h3>🎬 你們可以一起做</h3><p>${esc(M.collab)}</p></div>
+        <p class="mini" style="text-align:center;margin-top:12px">把你的結果分享回去，${esc(FR.nick)} 也能看到你們的配對 💌</p>
+      </div>` : ''}
 
       <div class="card section">
         <span class="tag">特調配方</span>
@@ -969,6 +1237,7 @@
             <div class="pillars">${d.pillars.map((p,k)=>`<div class="pillar"><b>支柱 ${k+1}</b>${esc(p)}</div>`).join('')}</div>
           </div>`).join('')}
       </div>
+      <div class="ad-slot no-print" data-ad="result-mid"></div>
 
       <div class="card section">
         <span class="tag">定位配方</span>
@@ -989,9 +1258,16 @@
 
       ${ENDPOINT ? `
       <div class="card section mail-card no-print ${S.sentTo ? 'sent' : ''}" id="mailCard">
-        <span class="tag">免費寄送</span>
-        <h2>📩 把完整報告寄到信箱</h2>
-        <p class="sub" style="margin-bottom:6px">收藏起來慢慢看！接下來幾天，還會收到幾封「把定位變成內容」的實戰小信。</p>
+        <span class="tag" id="mailTag">免費寄送</span>
+        <h2 id="mailTitle">📩 把完整報告寄到信箱</h2>
+        <p class="sub" style="margin-bottom:6px" id="mailSub">收藏起來慢慢看！接下來幾天，還會收到幾封「把定位變成內容」的實戰小信。</p>
+        <div id="calWrap" hidden>
+          <div class="cal">
+            ${calPosts.slice(0, 3).map(c => `<div><b>Day ${c.day}</b><span>${esc(c.title)}</span></div>`).join('')}
+            ${calPosts.slice(3, 5).map(c => `<div class="blur" aria-hidden="true"><b>Day ${c.day}</b><span>${esc(c.title)}</span></div>`).join('')}
+            <span class="more">🔒 還有 ${calPosts.length - 3} 篇主題，留 Email 就寄完整 30 天給你</span>
+          </div>
+        </div>
         <form id="mailForm" novalidate>
           <div class="mail-row">
             <input class="input" type="email" id="mailInput" required maxlength="120" placeholder="你的 Email" autocomplete="email" value="${esc(S.email || '')}">
@@ -1013,6 +1289,13 @@
         <div id="prodList"></div>
       </div>` : ''}
 
+      <div class="card section line-card no-print" id="lineCard" hidden>
+        <div style="font-size:42px">💚</div>
+        <div class="txt"><h3 style="margin-bottom:2px">加入 LINE 官方帳號</h3><p class="mini" style="margin:0">每週收到選題靈感、直播與課程優惠的第一手通知</p></div>
+        <a class="btn line" href="#" target="_blank" rel="noopener">加入好友 →</a>
+      </div>
+      <div class="ad-slot no-print" data-ad="result-end"></div>
+
       <div class="btns no-print">
         <button class="btn ghost" id="retake">↺ 重新測驗</button>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -1023,7 +1306,7 @@
       </div>`;
 
     setupMascot(main, nick, B.name, [B.slogan, `我的獨門絕招是：${B.power}！`, `我們來做「${B.idea}」好不好？`]);
-    SHARE = {nick, drink: B.name, title: B.title, slogan: B.slogan, tags: P.tags, color: P.color, color2: P2.color,
+    SHARE = {key: myKey, nick, drink: B.name, title: B.title, slogan: B.slogan, tags: P.tags, color: P.color, color2: P2.color,
              second: P2.drink, top: top.map(d => d.emoji + ' ' + d.name), traits: ranked.slice(0,3).map(k => ({name: TRAITS[k].name, v: score[k]}))};
     if (ENDPOINT) setupLeadCapture({
       // persona 維持 5 大家族名稱（後台課程推薦、統計用）；personaFull 帶上特調，且一定包含家族名稱
@@ -1036,8 +1319,10 @@
         strengths: [`獨門絕招：${B.power}`, `招牌企劃：${B.idea}`, ...P.strengths, P2.strengths[0]], blindSpots: P.blind,
         directions: top.map(d => ({name: d.name, pct: d.pct, pillars: d.pillars, forms: d.forms, monetize: d.monetize})),
         statement, bio, platforms: [...plat.list, `頻率：${plat.freq}`], ideas: ideaList,
+        calendar: cal,
       },
     });
+    applySite();
     requestAnimationFrame(() => setTimeout(() => $$('.bars .val').forEach(v => v.style.width = v.dataset.w + '%'), 80));
 
     REPORT_MD = [
@@ -1076,7 +1361,7 @@
         const res = await fetch(ENDPOINT, {
           method: 'POST',
           headers: {'Content-Type': 'text/plain;charset=utf-8'},   // 用 text/plain 避免跨網域預檢
-          body: JSON.stringify({...payload, email, consent: true, hp: $('#mailHp').value, source: location.href}),
+          body: JSON.stringify({...payload, email, consent: true, hp: $('#mailHp').value, source: S.src || '直接開啟'}),
         });
         const data = await res.json().catch(() => ({}));
         if (!data.ok) throw new Error(data.error || '寄送失敗，請稍後再試');
@@ -1096,8 +1381,9 @@
 
   async function loadProducts(persona){
     try {
-      const res = await fetch(ENDPOINT + (ENDPOINT.includes('?') ? '&' : '?') + 'action=products');
-      const data = await res.json();
+      // 新版後台在網站打開時就一起給了課程；舊版後台才另外問一次
+      let data = await sitePromise;
+      if (!data || !data.products) data = await fetch(ENDPOINT + (ENDPOINT.includes('?') ? '&' : '?') + 'action=products').then(r => r.json());
       const fits = p => String(p.personas || '全部').split(/[,，、\s]+/).some(t => t === '全部' || (t && persona.includes(t)));
       const list = (data.products || []).filter(fits).slice(0, 2);
       if (!list.length) return;
@@ -1116,7 +1402,9 @@
   let SHARE = null, bubbleT = null;
   const fab = $('#shareFab'), fabMain = $('#fabMain'), veil = $('#shareVeil'), bubble = $('#fabBubble');
   const siteUrl = () => location.href.split(/[?#]/)[0];
-  const shareText = () => SHARE ? `我測出來是「${SHARE.drink}・${SHARE.title}」🧋\n${SHARE.slogan}\n你是哪一杯自媒體奶茶？快來測測看 👉` : '你是哪一杯自媒體奶茶？快來測測看 👉';
+  // 分享出去的連結帶著自己的特調，朋友測完就會看到兩個人的配對
+  const shareUrl = () => SHARE ? `${siteUrl()}?f=${SHARE.key}&n=${encodeURIComponent(SHARE.nick.slice(0, 12))}&src=friend` : siteUrl();
+  const shareText = () => SHARE ? `我測出來是「${SHARE.drink}・${SHARE.title}」🧋\n${SHARE.slogan}\n你是哪一杯？測完看看我們是什麼組合 👉` :'你是哪一杯自媒體奶茶？快來測測看 👉';
   function setFab(open){
     fab.classList.toggle('open', open); veil.classList.toggle('on', open);
     fabMain.setAttribute('aria-expanded', open);
@@ -1135,7 +1423,7 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') setFab(false); });
   $('#fabMenu').addEventListener('click', async e => {
     const b = e.target.closest('[data-share]'); if (!b) return;
-    const url = siteUrl(), text = shareText();
+    const url = shareUrl(), text = shareText();
     const open = u => window.open(u, '_blank', 'noopener,width=620,height=640');
     switch (b.dataset.share) {
       case 'line': open('https://line.me/R/share?text=' + encodeURIComponent(text + ' ' + url)); break;
@@ -1228,7 +1516,7 @@
     const blob = await new Promise(r => c.toBlob(r, 'image/png'));
     const file = new File([blob], `奶茶人格-${SHARE.title}.png`, {type: 'image/png'});
     if (navigator.canShare && navigator.canShare({files: [file]})) {
-      try { await navigator.share({files: [file], text: shareText() + ' ' + siteUrl()}); return; } catch (e) { if (e.name === 'AbortError') return; }
+      try { await navigator.share({files: [file], text: shareText() + ' ' + shareUrl()}); return; } catch (e) { if (e.name === 'AbortError') return; }
     }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = file.name;
